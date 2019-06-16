@@ -1,0 +1,69 @@
+@import "../Themes/theme.scss";
+
+.playbar {
+  width: 100vw;
+  height: 67px;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+
+  @include themed($themes) {
+    background-color: theme("primary");
+  }
+
+  .left {
+    padding-left: 45px;
+    display: inline-block;
+
+    i {
+      color: white;
+      font-size: 22px;
+      padding-right: 24px;
+      vertical-align: middle;
+    }
+
+    .volume {
+      padding-left: 18px;
+      display: inline-block;
+
+      i {
+        font-size: 22px;
+        padding-right: 7px;
+      }
+
+      .volume-back {
+        vertical-align: middle;
+        display: inherit;
+        width: 89px;
+        background-color: rgba(black, 0.25);
+        height: 8px;
+        border-radius: 5px;
+      }
+
+      .slider {
+        width: 50px;
+        background-color: white;
+        height: 8px;
+        border-radius: 5px;
+        position: absolute;
+        margin-left: 18.05px;
+        margin-top: -15px;
+      }
+    }
+  }
+  .right {
+    padding-right: 45px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+
+    i {
+      color: white;
+      font-size: 18px;
+      padding-left: 12px;
+      vertical-align: middle;
+    }
+  }
+}

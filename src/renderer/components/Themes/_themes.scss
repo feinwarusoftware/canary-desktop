@@ -1,0 +1,29 @@
+$themes: (
+  default-dark: (
+    primary: #ffa800,
+    navbar: #111111,
+    sidebar: #222222,
+    background: #333333,
+    text: #ffffff,
+    text-fade: #c5c5c5,
+    disabled: #707070,
+    search: #707070
+  ),
+  default-light: (
+    primary: #ffa800,
+    navbar: #111111,
+    sidebar: #ffffff,
+    background: #eeeeee,
+    text: #222222,
+    text-fade: #222222,
+    disabled: #707070,
+    search: #eeeeee
+  )
+);
+@import url("https://fonts.googleapis.com/css?family=Roboto:300,400,700,900");
+body {
+  font-family: "Roboto", "sans-serif";
+}
+
+$fontfamily: "Roboto", "sans-serif";
+$shadow: 0px 0px 20px #000;

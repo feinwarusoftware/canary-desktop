@@ -41,15 +41,15 @@ module.exports = merge.smart(baseConfig, {
                 loaders: ['style-loader', 'css-loader']
             },
             {
-                test: /\.(gif|png|jpe?g|svg)$/,
+                test: /\.(png|svg|jpg|jpeg|gif)$/,
                 use: [
-                    'file-loader',
-                    {
-                        loader: 'image-webpack-loader',
-                        options: {
-                            disable: true
-                        }
-                    }
+                    "file-loader"
+                ]
+            },
+            {
+                test: /\.(woff|woff2|eot|ttf|otf)$/,
+                use: [
+                    "file-loader"
                 ]
             },
             // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.

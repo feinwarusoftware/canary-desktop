@@ -1,0 +1,78 @@
+@import "../Themes/theme.scss";
+
+.sidebar {
+  position: relative;
+  width: 57px;
+  height: calc(100vh - (67px + 37px));
+  //change float for left/right side
+  float: left;
+  left: 0;
+  top: 0;
+  padding-top: 37px;
+
+  @include themed($themes) {
+    background-color: theme("navbar");
+  }
+
+  i {
+    font-size: 24px;
+    width: 100%;
+    text-align: center;
+    padding-bottom: 20px;
+
+    &:hover {
+      cursor: pointer;
+      @include themed($themes) {
+        color: theme("text-fade");
+      }
+      .tooltiptext {
+        visibility: visible;
+      }
+    }
+
+    @include themed($themes) {
+      color: theme("disabled");
+
+      &.active {
+        color: #fff;
+      }
+    }
+
+    .tooltiptext {
+      visibility: hidden;
+      font-size: 16px;
+      font-family: $fontfamily;
+      font-weight: 400;
+      text-align: center;
+      border-radius: 16px;
+      padding: 5px 20px;
+      position: absolute;
+      z-index: 1;
+      left: 100%;
+
+      @include themed($themes) {
+        background-color: theme("background");
+        color: theme("text");
+      }
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: -9px;
+        margin-top: -5px;
+        border-width: 5px;
+        border-style: solid;
+        @include themed($themes) {
+          border-color: transparent theme("background") transparent transparent;
+        }
+      }
+    }
+  }
+
+  .bottom-settings {
+    position: absolute;
+    bottom: 0;
+    left: 5px;
+  }
+}

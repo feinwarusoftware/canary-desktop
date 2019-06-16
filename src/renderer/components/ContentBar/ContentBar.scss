@@ -1,0 +1,66 @@
+@import "../Themes/theme.scss";
+
+.contentbar {
+  position: relative;
+  width: 256px;
+  height: calc(100vh - (67px + 37px));
+  //change float for left/right side
+  float: left;
+  left: 0;
+  top: 0;
+  padding-top: 37px;
+
+  @include themed($themes) {
+    background-color: theme("sidebar");
+  }
+
+  .searchbar {
+    margin-left: 14px;
+    margin-right: 14px;
+    padding-left: 14px;
+    padding-right: 14px;
+    border-radius: 18px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    @include themed($themes) {
+      background-color: theme("search");
+    }
+
+    i {
+      @include themed($themes) {
+        color: theme("text-fade");
+      }
+    }
+    input {
+      all: unset;
+      font-family: $fontfamily;
+      font-size: 15px;
+      display: inline-block;
+      margin: 0;
+      margin-left: 10px;
+      @include themed($themes) {
+        color: theme("text");
+      }
+      &::placeholder {
+        font-style: italic;
+        @include themed($themes) {
+          color: theme("text-fade");
+        }
+      }
+    }
+  }
+
+  .content {
+    height: 100%;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    div {
+      margin-top: 32px;
+      flex: 1;
+      width: 100%;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+  }
+}
