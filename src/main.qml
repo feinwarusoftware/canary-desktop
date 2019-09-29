@@ -9,6 +9,7 @@ Window {
 	color: "#333333"
 
 	Text {
+		id: debugbox
 		objectName: "debug"
 		text: "oi" 
 		font.family: "Helvetica"
@@ -29,6 +30,12 @@ Window {
 			x: 44
 			y: 25
 			color:"red"
+			MouseArea {
+				anchors.fill: parent
+				onClicked: {
+					player.jump(-1)
+				}
+			}
 		}
 
 		Rectangle {
@@ -37,6 +44,12 @@ Window {
 			x: 138
 			y: 25
 			color:"red"
+			MouseArea {
+				anchors.fill: parent
+				onClicked: {
+					player.jump(1)
+				}
+			}
 		}
 
 		Rectangle {
@@ -45,6 +58,13 @@ Window {
 			x: 91
 			y: 20
 			color:"red"
+
+			MouseArea {
+				anchors.fill: parent
+				onClicked: {
+					player.play()
+				}
+			}
 		}
 	}
 

@@ -4,6 +4,10 @@
 
 #include <QVector>
 
+Player::Player(QObject* parent) : QObject(parent) {
+
+}
+
 HSTREAM mixer, source;
 HSYNC sync;
 
@@ -26,7 +30,7 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 }
 
 void Player::init() {
-	//BASS_PluginLoad("bassflac.dll", 0); //TODO: add more plugins
+	BASS_PluginLoad("bassflac.dll", 0); //TODO: add more plugins
 	//TODO: add notifier/throw error/error parsing
 	BASS_Init(
 		-1, //default device
@@ -36,7 +40,7 @@ void Player::init() {
 		NULL
 	);
 
-	mixer = BASS_Mixer_StreamCreate(48000, 2, BASS_MIXER_END); // add if here / same freq as the sys - BASS wil "downgrade" if needed / get it to init? (got)
+	mixer = BASS_Mixer_StreamCreate(48000, 2, BASS_MIXER_END); //TODO GET FREQ
 };
 
 void Player::insertToQueue(int pos, char const* song) {
@@ -45,13 +49,10 @@ void Player::insertToQueue(int pos, char const* song) {
 
 bool Player::loadSong(int pos) {
 	b = pos;
-	//mixer = BASS_Mixer_StreamCreate(48000, 2, BASS_MIXER_END); // add if here / same freq as the sys - BASS wil "downgrade" if needed / get it to init?
 	sync = BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0);
 
 	source = BASS_StreamCreateFile(FALSE, queue[pos], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
-	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
-
-	return true;
+	return BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
 }
 
 bool Player::clearMixer() {
@@ -59,27 +60,19 @@ bool Player::clearMixer() {
 	return BASS_ChannelRemoveSync(mixer, sync);
 }
 
-bool Player::skipSong() {
+bool Player::jump(int direction) {
+	//TODO (IMPORTANT!): ADD VERIFICATION - IF SONG EXISTS, JUMPS
 	clearMixer();
-	loadSong(b + 1);
-	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
-	return true;
-}
-
-bool Player::backSong() {
-	return true;
+	loadSong(b + direction); //1 if jump, -1 if back
+	return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 }
 
 bool Player::play() {
-	BASS_ChannelPlay(mixer, FALSE);
-	return true;
+	return BASS_ChannelPlay(mixer, FALSE);
 }
-
-/*bool Player::playSong(QString song) {
-	BASS_Mixer_StreamCreate(44100, 2, BASS_MIXER_END);
-}*/
 
 /*
 TODO FUNCTIONS:
 - (automatically) Change output device when main device changes
+- remove songs from queue
 */

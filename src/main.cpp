@@ -1,11 +1,16 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQuickView>
+#include <QQmlContext>
+#include <QQmlEngine>
 #include "player.h"
 #include <QVector>
 //#include <QString>
 
 #include "bass.h"
 #include "bassmix.h"
+
+#include <iostream>
 
 QObject* debugger;
 
@@ -20,19 +25,26 @@ int main(int argc, char* argv[])
 	QGuiApplication app(argc, argv);
 	QQmlApplicationEngine engine("main.qml");
 
-	debugger = engine.rootObjects().first()->findChild<QObject*>("debug");
+	QScopedPointer<Player> p(new Player);
 
-	BASS_PluginLoad("bassflac.dll", 0);
+	engine.rootContext()->setContextProperty("player", p.data());
+
+	//debugger = engine.rootObjects().first()->findChild<QObject*>("debug");
+
 	player.init();
 
 	//obviously test songs
 	player.insertToQueue(0, "01. Deus Le Volt!.flac");
 	player.insertToQueue(1, "02. Spread Your Fire.flac");
-	player.insertToQueue(3, "03. Angels And Demons.flac");
+	player.insertToQueue(2, "03. Angels And Demons.flac");
 
-	player.loadSong(1);
+	player.loadSong(0);
 
-	player.play();
+	/*QQuickView* view = new QQuickView;
+	view->setSource(QUrl::fromLocalFile("main.qml"));
+	view->show(); //this is debug?*/
+
+	//player.play();
 
 	return app.exec();
 }

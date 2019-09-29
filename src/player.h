@@ -1,17 +1,28 @@
+#ifndef PLAYER_H
+#define PLAYER_H
+
 #include "bass.h"
 #include "bassmix.h"
-//#include <QString>
 
 #include <QVector>
 
-class Player {
+#include <QObject>
+#include <QVariant> //TODO: replace for GUI or shit later on?
+
+class Player : public QObject {
+	Q_OBJECT
 public:
+	explicit Player(QObject* parent = 0);
 	void init();
-	void insertToQueue(int pos, char const* song);
-	bool loadSong(int pos);
+	Q_INVOKABLE void insertToQueue(int pos, char const* song);
+	Q_INVOKABLE bool loadSong(int pos);
 	bool clearMixer();
-	bool skipSong();
-	bool backSong();
-	bool play();
-	//bool playSong(QString song);
+	Q_INVOKABLE bool jump(int direction);
+	Q_INVOKABLE bool play();
+
+signals:
+
+public slots:
 };
+
+#endif //PLAYER_H
