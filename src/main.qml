@@ -1,5 +1,6 @@
 import QtQuick 2.13
 import QtQuick.Window 2.13
+import QtQuick.Controls 2.5
 
 Window {
     visible: true
@@ -62,9 +63,34 @@ Window {
 			MouseArea {
 				anchors.fill: parent
 				onClicked: {
-					player.play()
-				}
+					if(player.active())
+						player.pause()
+					else
+						player.play()
+					}
 			}
+		}
+
+		Slider {
+			from: 0
+			value: 1
+			to: 1
+			x: 170
+			y: 20
+			handle: Rectangle { //"Rectangle" necessary?
+				visible:false
+			}
+			onValueChanged:{
+				player.changeVolume(this.value)
+			}
+		}
+
+		Slider{
+			from: 0
+			value: 0
+			to: 0
+			x: 370
+			y: 20
 		}
 	}
 

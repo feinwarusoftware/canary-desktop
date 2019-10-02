@@ -19,6 +19,9 @@ public:
 	bool clearMixer();
 	Q_INVOKABLE bool jump(int direction);
 	Q_INVOKABLE bool play();
+	Q_INVOKABLE bool changeVolume(float v);
+	Q_INVOKABLE bool active();
+	Q_INVOKABLE bool pause();
 
 signals:
 
