@@ -13,15 +13,16 @@ HSYNC sync;
 
 int b; //current (or next?) song
 
+bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actually is (that is controlled by BASS itself)
+				//e.g.: when you're dragging the playback bar, BASS is NOT playing (it's paused), but isPlaying = TRUE, so when you release the button it continues playing as intended
+
 QVector<char const*> queue(10);
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
-	//if (index > 0 && index < myVector.size()). ===== O CONTRÁRIO
-	if (b + 1 > queue.size() - 1) { // NÃO TEM PRÓXIMO
-		//debugger->setProperty("text", "oi");
+	if (b + 1 > queue.size() - 1) {
 		return;
-	}; //TODO AQUI -> AQUELA HORA DEU BUG PQ ISSO AQUI SEMPRE É VERDADE, LOGO ELE SEMPRE RETORNAVA E TOCAVA SPREAD YOUR FIRE
+	};
 	b = b + 1;
 	source = BASS_StreamCreateFile(FALSE, queue[b], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open next source
 	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
@@ -61,18 +62,39 @@ bool Player::clearMixer() {
 }
 
 bool Player::jump(int direction) {
-	//TODO (IMPORTANT!): ADD VERIFICATION - IF SONG EXISTS, JUMPS
+	if (direction == -1 && b - 1 < 0) {
+		BASS_ChannelSetPosition(source, 0, BASS_POS_BYTE);
+		return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); //reset the mixer aswell to prevent audio glitching TODO: ADD FADE (TO ALL OF THIS STUFF)
+	} 
+	else if (direction == 1 && b + 1 > queue.size() - 1) {
+		return clearMixer();
+	};
 	clearMixer();
 	loadSong(b + direction); //1 if jump, -1 if back
 	return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 }
 
 bool Player::play() {
+	isPlaying = TRUE;
 	return BASS_ChannelPlay(mixer, FALSE);
+}
+
+bool Player::pause() {
+	isPlaying = FALSE;
+	return BASS_ChannelPause(mixer);
+}
+
+bool Player::changeVolume(float v) {
+	return BASS_SetVolume(v);
+}
+
+bool Player::active() {
+	return isPlaying;
 }
 
 /*
 TODO FUNCTIONS:
 - (automatically) Change output device when main device changes
 - remove songs from queue
+- get freq in init (mixer init)
 */
