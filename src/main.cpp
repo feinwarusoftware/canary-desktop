@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-QObject* debugger;
+QObject *debugger, *trackbar;
 
 //QVector<char const*> queue(10);
 
@@ -29,9 +29,10 @@ int main(int argc, char* argv[])
 
 	engine.rootContext()->setContextProperty("player", p.data());
 
-	//debugger = engine.rootObjects().first()->findChild<QObject*>("debug");
+	debugger = engine.rootObjects().first()->findChild<QObject*>("debug");
+	trackbar = engine.rootObjects().first()->findChild<QObject*>("trackbar");
 
-	player.init();
+	player.init(engine.rootObjects().first()); //maybe this passing of the root object won't be necessary in the future (functions will be called directly from QML already with the necessary, specific objects)
 
 	//obviously test songs
 	player.insertToQueue(0, "03. Lisbon.flac");

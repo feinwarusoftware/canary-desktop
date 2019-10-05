@@ -86,11 +86,41 @@ Window {
 		}
 
 		Slider{
+			objectName: "trackbar"
 			from: 0
 			value: 0
 			to: 0
 			x: 370
 			y: 20
+			onValueChanged:{
+				//player.seek(this.value)
+				player.setCurrentLen(1) //this does magic, apparently
+			}
+			//onPressAndHold:{}
+			onPressedChanged:{
+				//player.setCurrentLen()
+				player.seek(this.value)
+				if(!pressed && player.active()) //TODO: DOES NOT WORK AS INTENDED - ONLY PAUSES ON CHACE - SUPPOSED TO PAUSE WHENEVER CLICKED
+					player.play()
+			}
+		}
+
+		Text{
+			objectName:"staticCounter"
+			anchors.bottom: parent.bottom
+			x: 1450
+			text:"0:00"
+			color:"blue"
+			font.pointSize: 14
+		}
+
+		Text{
+			objectName:"dynamicCounter"
+			anchors.bottom: parent.bottom
+			text:"0:00"
+			color:"blue"
+			font.pointSize: 14
+			x: 1400
 		}
 	}
 
