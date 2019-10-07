@@ -6,7 +6,6 @@
 
 #include <QVector>
 #include <QString>
-#include <QTimer>
 
 #include <QObject>
 #include <QVariant> //TODO: replace for GUI or shit later on?
@@ -23,13 +22,17 @@ public:
 	Q_INVOKABLE bool play();
 	Q_INVOKABLE bool changeVolume(float v);
 	Q_INVOKABLE bool active();
-	Q_INVOKABLE bool pause();
+	Q_INVOKABLE bool pause(bool drag = 0);
 	//Q_INVOKABLE QWORD getLength(HSTREAM src);
 	void setLen();
-	Q_INVOKABLE bool seek(int to);
-	Q_INVOKABLE QWORD getPosition();
-	QString toMinHourFormat(QWORD bytes);
-	Q_INVOKABLE void setCurrentLen(bool drag = 0);
+	Q_INVOKABLE bool seek(int to, int width);
+	Q_INVOKABLE int getPosition();
+	//QString toMinHourFormat(QWORD bytes);
+	Q_INVOKABLE QString toMinHourFormat(int bytes);
+	//Q_INVOKABLE void setCurrentLen(QWORD pos, bool drag = 0);
+	//Q_INVOKABLE int getRelativeLength(int len, int width);
+	Q_INVOKABLE void updateTime(QWORD newpos);
+	Q_INVOKABLE int bytesToSeconds(int bytes);
 
 
 signals:

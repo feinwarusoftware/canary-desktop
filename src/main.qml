@@ -9,6 +9,29 @@ Window {
     title: qsTr("Canary")
 	color: "#333333"
 
+    Timer {
+		id:timer
+		property int currentPos
+        interval: 500; //to 1000?
+		running: false 
+		repeat: true
+		triggeredOnStart: true //set to false(?)
+        onTriggered: {
+			currentPos = player.getPosition()
+			dCounter.text = player.toMinHourFormat(currentPos)
+			innerTrackbar.width = parseInt((currentPos * trackbar.width) / trackbar.songLen)
+		}
+    }
+
+	function timerControl(arg){
+		if(arg == 1){
+			return timer.start()
+		}
+		else{
+			return timer.stop()
+		}
+	}
+
 	Text {
 		id: debugbox
 		objectName: "debug"
@@ -81,27 +104,60 @@ Window {
 				visible:false
 			}
 			onValueChanged:{
+				//debugbox.text = trackbar.songLen
 				player.changeVolume(this.value)
 			}
 		}
 
-		Slider{
-			objectName: "trackbar"
-			from: 0
-			value: 0
-			to: 0
-			x: 370
-			y: 20
-			onValueChanged:{
-				//player.seek(this.value)
-				player.setCurrentLen(1) //this does magic, apparently
+		Rectangle{
+			id:trackbar
+			objectName:"trackbar"
+			property int songLen: 0
+			x:370
+			y:5
+			width:700
+			height:50
+			color:"green"
+			Rectangle{
+				id:innerTrackbar
+				//width:5
+				width:0
+				height:parent.height
+				color:"red"
 			}
-			//onPressAndHold:{}
-			onPressedChanged:{
-				//player.setCurrentLen()
-				player.seek(this.value)
-				if(!pressed && player.active()) //TODO: DOES NOT WORK AS INTENDED - ONLY PAUSES ON CHACE - SUPPOSED TO PAUSE WHENEVER CLICKED
-					player.play()
+			MouseArea{
+				anchors.fill: parent
+				onClicked:{
+					innerTrackbar.width = this.mouseX
+					player.seek(innerTrackbar.width, parent.width)
+				}
+				onPressed:{
+					//TODO: TAKE A LOOK AT THIS
+					//INNERTRACKBAR/SEEK HERE? (TRY HOLDING BUT NOT MOVING)
+					player.pause(1)
+				}
+				onReleased:{
+					if(player.active())
+						player.play()
+					player.seek(innerTrackbar.width, parent.width)
+				}
+				onPositionChanged:{
+
+					if(this.mouseX < 0){ //(apparently) had a little logic problem before (seemed to be related to order) but now it seems to be working
+						innerTrackbar.width = 0
+					}
+					else if(this.mouseX <= this.width){
+						innerTrackbar.width = this.mouseX
+					}
+					else{
+						innerTrackbar.width = parent.width
+					}
+
+					debugbox.text = parseInt((innerTrackbar.width * parent.songLen) / parent.width);
+
+
+					dCounter.text = player.toMinHourFormat(parseInt((innerTrackbar.width * parent.songLen) / parent.width))
+				}
 			}
 		}
 
@@ -115,6 +171,7 @@ Window {
 		}
 
 		Text{
+			id:dCounter
 			objectName:"dynamicCounter"
 			anchors.bottom: parent.bottom
 			text:"0:00"
@@ -134,3 +191,5 @@ Window {
 		}
 	}
 }
+
+//TODO - KNOWN BUG: RELEASED NOT SEEK (-1 THING!!!)

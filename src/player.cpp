@@ -4,7 +4,6 @@
 
 #include <QVector>
 #include <QString>
-#include <QTimer>
 
 Player::Player(QObject* parent) : QObject(parent) {
 
@@ -15,7 +14,7 @@ HSYNC sync;
 
 int b; //current (or next?) song
 
-QWORD sLen, cLen;
+QWORD sLen/*, cLen*/;
 
 QObject* root;
 
@@ -23,8 +22,6 @@ bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actu
 				//e.g.: when you're dragging the playback bar, BASS is NOT playing (it's paused), but isPlaying = TRUE, so when you release the button it continues playing as intended
 
 QVector<char const*> queue(10);
-
-QTimer* timer;
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
@@ -52,12 +49,6 @@ void Player::init(QObject* r) {
 	root = r;
 
 	mixer = BASS_Mixer_StreamCreate(48000, 2, BASS_MIXER_END); //TODO GET FREQ
-
-	timer = new QTimer(this);
-	timer->setInterval(500);
-	connect(timer, &QTimer::timeout, this, [=]() {
-		setCurrentLen(0);
-	});
 };
 
 void Player::insertToQueue(int pos, char const* song) {
@@ -97,13 +88,15 @@ bool Player::play() {
 	if (!isPlaying) { //verifying in case isPlaying is already TRUE (this happens while the trackbar is being dragged, for example, as a play function is called when it's released)
 		isPlaying = TRUE;
 	}
-	timer->start();
+	QMetaObject::invokeMethod(root, "timerControl", Q_ARG(QVariant, 1));
 	return BASS_ChannelPlay(mixer, FALSE);
 }
 
-bool Player::pause() {
-	timer->stop();
-	isPlaying = FALSE;
+bool Player::pause(bool drag) {
+	if (!drag) {
+		isPlaying = FALSE;
+	}
+	QMetaObject::invokeMethod(root, "timerControl", Q_ARG(QVariant, 0));
 	return BASS_ChannelPause(mixer);
 }
 
@@ -122,37 +115,39 @@ bool Player::active() {
 void Player::setLen() {
 	sLen = BASS_ChannelGetLength(source, BASS_POS_BYTE); //implicit conversion from QWORD to int
 	//root->findChild<QObject*>("debug")->setProperty("text", sLen);
-	root->findChild<QObject*>("trackbar")->setProperty("to", sLen);
+	root->findChild<QObject*>("trackbar")->setProperty("songLen", sLen);
 	root->findChild<QObject*>("staticCounter")->setProperty("text", toMinHourFormat(sLen));
 }
 
-void Player::setCurrentLen(bool drag) { //if being dragged or called by timeout
-	cLen = BASS_ChannelGetPosition(
-		source,
-		BASS_POS_BYTE
-	);
-	root->findChild<QObject*>("dynamicCounter")->setProperty("text", toMinHourFormat(cLen));
+/*void Player::setCurrentLen(QWORD pos, bool drag) { //if being dragged or called by timeout
+	root->findChild<QObject*>("dynamicCounter")->setProperty("text", toMinHourFormat(pos));
 	if (!drag) {
-		root->findChild<QObject*>("trackbar")->setProperty("value", cLen);
+		root->findChild<QObject*>("trackbar")->setProperty("value", pos);
 	}
-}
+}*/
 
-bool Player::seek(int to) {
-	timer->stop();
-	if (isPlaying) {
+int seekVar;
+bool Player::seek(int to, int width) {
+	/*if (isPlaying) {
 		BASS_ChannelPause(mixer);
-	}
-	BASS_ChannelSetPosition(source, to, BASS_POS_BYTE);
+	}*/
+	seekVar = (to * sLen) / width;
+	//root->findChild<QObject*>("debug")->setProperty("text", seekVar);
+	BASS_ChannelSetPosition(source, seekVar, BASS_POS_BYTE);
 	return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 }
 
-QWORD Player::getPosition() {
+int Player::getPosition() { //in Q_INVOKABLE functions, always CONVERT QWORD TO INT so it's QML READABLE
 	return BASS_ChannelGetPosition(source, BASS_POS_BYTE);
 }
 
+int Player::bytesToSeconds(int bytes) {
+	return BASS_ChannelBytes2Seconds(source, bytes);
+}
+
 int seconds, minutes, remaining;
-QString Player::toMinHourFormat(QWORD bytes) { //it's always based on the "source" stream so no need to pass that
-	seconds = BASS_ChannelBytes2Seconds(source, bytes);
+QString Player::toMinHourFormat(int bytes) { //it's always based on the "source" stream so no need to pass that
+	seconds = bytesToSeconds(bytes);
 	minutes = seconds / 60;
 	remaining = seconds - minutes * 60;
 	if (remaining >= 10) {
@@ -162,6 +157,12 @@ QString Player::toMinHourFormat(QWORD bytes) { //it's always based on the "sourc
 		return QString::number(minutes) + ":0" + QString::number(remaining); //maybe TODO: make the "optional" 0 a variable (it's a stretch but idk hahaha)
 	}
 }
+
+void Player::updateTime(QWORD newpos) {
+	root->findChild<QObject*>("dynamicCounter")->setProperty("text", toMinHourFormat(newpos));
+}
+
+//SETAR PROPRIEDADE!!!!!!!!!!
 
 /*
 TODO FUNCTIONS:
