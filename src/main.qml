@@ -9,8 +9,12 @@ Window {
     title: qsTr("Canary")
 	color: "#333333"
 
-	function setLength(){
+	function setLength(length){
 		debugbox.text = "batata"
+		trackbar.songLen = length
+		sC.text = player.toMinHourFormat(length)
+		innerTrackbar.width = 0
+		dCounter.text = "0:00"
 	}
 
     Timer {
@@ -26,6 +30,8 @@ Window {
 			innerTrackbar.width = parseInt((currentPos * trackbar.width) / trackbar.songLen)
 		}
     }
+
+	//pass toMinHourFormat to JS
 
 	function timerControl(arg){
 		if(arg == 1){
@@ -169,6 +175,7 @@ Window {
 		}
 
 		Text{
+			id:sC
 			objectName:"staticCounter"
 			anchors.bottom: parent.bottom
 			x: 1450

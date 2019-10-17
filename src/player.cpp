@@ -129,22 +129,14 @@ bool Player::active() {
 	return isPlaying;
 }
 
-QWORD Player::getLength() { //not being used right now - may be useful in the future
+/*QWORD Player::getLength() { //not being used right now - may be useful in the future
 	return BASS_ChannelGetLength(source, BASS_POS_BYTE);
-}
+}*/
 
 void Player::setLen() {
 	sLen = BASS_ChannelGetLength(source, BASS_POS_BYTE); //implicit conversion from QWORD to int
-	//TODO: this is actually glitching and not updating sometimes - only when something is clicked inside the window (e.g. volume bar is tweaked) - possible solution: pass this to the qml
-	//double check: it's working now - probably caused by the two commented root calls
-	root->findChild<QObject*>("trackbar")->setProperty("songLen", sLen);
-	root->findChild<QObject*>("staticCounter")->setProperty("text", toMinHourFormat(sLen));
 
-	//resets everything
-	/*root->findChild<QObject*>("innerTrackbar")->setProperty("width", 0);
-	root->findChild<QObject*>("dynamicCounter")->setProperty("text", "0:00");*/
-
-	//QMetaObject::invokeMethod(root, "timerControl", Q_ARG(QVariant, 1));
+	QMetaObject::invokeMethod(root, "setLength", Q_ARG(QVariant, sLen));
 }
 
 /*void Player::setCurrentLen(QWORD pos, bool drag) { //if being dragged or called by timeout

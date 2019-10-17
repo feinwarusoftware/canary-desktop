@@ -25,7 +25,7 @@ public:
 	Q_INVOKABLE bool changeVolume(float v);
 	Q_INVOKABLE bool active();
 	Q_INVOKABLE bool pause(bool drag = 0);
-	Q_INVOKABLE QWORD getLength();
+	//Q_INVOKABLE QWORD getLength();
 	void setLen();
 	Q_INVOKABLE bool seek(int to, int width);
 	Q_INVOKABLE int getPosition();
