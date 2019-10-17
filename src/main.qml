@@ -9,6 +9,10 @@ Window {
     title: qsTr("Canary")
 	color: "#333333"
 
+	function setLength(){
+		debugbox.text = "batata"
+	}
+
     Timer {
 		id:timer
 		property int currentPos
@@ -30,6 +34,8 @@ Window {
 		else{
 			return timer.stop()
 		}
+
+		//TODO: ADD RESTART TIMER FOR JUMP!!!!
 	}
 
 	Text {
@@ -119,6 +125,7 @@ Window {
 			height:50
 			color:"green"
 			Rectangle{
+				objectName:"innerTrackbar"
 				id:innerTrackbar
 				//width:5
 				width:0
@@ -132,9 +139,9 @@ Window {
 					player.seek(innerTrackbar.width, parent.width)
 				}
 				onPressed:{
-					//TODO: TAKE A LOOK AT THIS
-					//INNERTRACKBAR/SEEK HERE? (TRY HOLDING BUT NOT MOVING)
 					player.pause(1)
+					innerTrackbar.width = this.mouseX //necessary? (currently think so, try holding but not moving)
+					player.seek(innerTrackbar.width, parent.width)
 				}
 				onReleased:{
 					if(player.active())
@@ -193,3 +200,4 @@ Window {
 }
 
 //TODO - KNOWN BUG: RELEASED NOT SEEK (-1 THING!!!)
+//TODO - PASS TOMINHOURFORMAT TO HERE

@@ -14,6 +14,8 @@ HSYNC sync;
 
 int b; //current (or next?) song
 
+float volume = 1;
+
 QWORD sLen/*, cLen*/;
 
 QObject* root;
@@ -21,15 +23,23 @@ QObject* root;
 bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actually is (that is controlled by BASS itself)
 				//e.g.: when you're dragging the playback bar, BASS is NOT playing (it's paused), but isPlaying = TRUE, so when you release the button it continues playing as intended
 
-QVector<char const*> queue(10);
+QVector<char const*> queue; //apparently this works so fine (I got a glitch once but apparently it was unrelated to this and just a coincidence)
+
+BASS_INFO currentDeviceInfo;
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
+	Player player;
+
 	if (b + 1 > queue.size() - 1) {
 		return;
 	};
+
 	b = b + 1;
 	source = BASS_StreamCreateFile(FALSE, queue[b], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open next source
+
+	player.setLen();
+
 	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
 	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); // reset the mixer
 	//no need to recall the callback, it is called every time the mixer "ends" (it's attached to the mixer)
@@ -48,7 +58,8 @@ void Player::init(QObject* r) {
 
 	root = r;
 
-	mixer = BASS_Mixer_StreamCreate(48000, 2, BASS_MIXER_END); //TODO GET FREQ
+	BASS_GetInfo(&currentDeviceInfo);
+	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, 2, BASS_MIXER_END); //TODO GET FREQ
 };
 
 void Player::insertToQueue(int pos, char const* song) {
@@ -89,34 +100,51 @@ bool Player::play() {
 		isPlaying = TRUE;
 	}
 	QMetaObject::invokeMethod(root, "timerControl", Q_ARG(QVariant, 1));
-	return BASS_ChannelPlay(mixer, FALSE);
+	if (getPosition() == 0) {
+		return BASS_ChannelPlay(mixer, FALSE);
+	}
+	return BASS_ChannelPlay(mixer, FALSE) && BASS_ChannelSlideAttribute(mixer, BASS_ATTRIB_VOL, volume, 100);
 }
 
 bool Player::pause(bool drag) {
 	if (!drag) {
 		isPlaying = FALSE;
 	}
+	BASS_ChannelSlideAttribute(
+		mixer,
+		BASS_ATTRIB_VOL,
+		0,
+		100
+	);
 	QMetaObject::invokeMethod(root, "timerControl", Q_ARG(QVariant, 0));
 	return BASS_ChannelPause(mixer);
 }
 
 bool Player::changeVolume(float v) {
-	return BASS_ChannelSetAttribute(mixer, BASS_ATTRIB_VOL, v);
+	volume = v;
+	return BASS_ChannelSetAttribute(mixer, BASS_ATTRIB_VOL, volume);
 }
 
 bool Player::active() {
 	return isPlaying;
 }
 
-/*QWORD Player::getLength(HSTREAM src) { //not being used right now - may be useful in the future
-	return BASS_ChannelGetLength(src, BASS_POS_BYTE);
-}*/
+QWORD Player::getLength() { //not being used right now - may be useful in the future
+	return BASS_ChannelGetLength(source, BASS_POS_BYTE);
+}
 
 void Player::setLen() {
 	sLen = BASS_ChannelGetLength(source, BASS_POS_BYTE); //implicit conversion from QWORD to int
-	//root->findChild<QObject*>("debug")->setProperty("text", sLen);
+	//TODO: this is actually glitching and not updating sometimes - only when something is clicked inside the window (e.g. volume bar is tweaked) - possible solution: pass this to the qml
+	//double check: it's working now - probably caused by the two commented root calls
 	root->findChild<QObject*>("trackbar")->setProperty("songLen", sLen);
 	root->findChild<QObject*>("staticCounter")->setProperty("text", toMinHourFormat(sLen));
+
+	//resets everything
+	/*root->findChild<QObject*>("innerTrackbar")->setProperty("width", 0);
+	root->findChild<QObject*>("dynamicCounter")->setProperty("text", "0:00");*/
+
+	//QMetaObject::invokeMethod(root, "timerControl", Q_ARG(QVariant, 1));
 }
 
 /*void Player::setCurrentLen(QWORD pos, bool drag) { //if being dragged or called by timeout
@@ -128,11 +156,12 @@ void Player::setLen() {
 
 int seekVar;
 bool Player::seek(int to, int width) {
-	/*if (isPlaying) {
-		BASS_ChannelPause(mixer);
-	}*/
 	seekVar = (to * sLen) / width;
-	//root->findChild<QObject*>("debug")->setProperty("text", seekVar);
+	if (seekVar == sLen) {
+		BASS_ChannelSetPosition(source, seekVar - 1, BASS_POS_BYTE); //-1 to actually work - if the "entire" value is passed it actually glitches and goes back to where (the position) it was before
+		//TODO: arithmetic overflow on the previous line???
+		return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+	}
 	BASS_ChannelSetPosition(source, seekVar, BASS_POS_BYTE);
 	return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 }
@@ -162,14 +191,13 @@ void Player::updateTime(QWORD newpos) {
 	root->findChild<QObject*>("dynamicCounter")->setProperty("text", toMinHourFormat(newpos));
 }
 
-//SETAR PROPRIEDADE!!!!!!!!!!
-
 /*
 TODO FUNCTIONS:
 - (automatically) Change output device when main device changes
 - remove songs from queue
-- get freq in init (mixer init)
+- get freq in init (mixer init) DONE
 - fix array
+- actually do something when queue ends
+- WAVEFORM: calculate each pixels byte value and jump from/by those bytes and drawing them (their peaks)
+- remove unused libraries
 */
-
-// BASS_ChannelGetLength(activeChannel, BASS_POS_BYTE)

@@ -35,7 +35,10 @@ int main(int argc, char* argv[])
 	player.init(engine.rootObjects().first()); //maybe this passing of the root object won't be necessary in the future (functions will be called directly from QML already with the necessary, specific objects)
 
 	//obviously test songs
-	player.insertToQueue(0, "03. Lisbon.flac");
+	//player.insertToQueue(0, "03. Lisbon.flac");
+	player.insertToQueue(0, "01. Deus Le Volt!.flac");
+	player.insertToQueue(1, "02. Spread Your Fire.flac");
+	player.insertToQueue(2, "03. Angels And Demons.flac");
 
 	player.loadSong(0);
 
