@@ -1,9 +1,4 @@
 #include "player.h"
-#include "bass.h"
-#include "bassmix.h"
-
-#include <QVector>
-#include <QString>
 
 Player::Player(QObject* parent) : QObject(parent) {
 
@@ -16,7 +11,7 @@ int b; //current (or next?) song
 
 float volume = 1;
 
-QWORD sLen/*, cLen*/;
+QWORD sLen;
 
 QObject* root;
 
@@ -26,6 +21,8 @@ bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actu
 QVector<char const*> queue; //apparently this works so fine (I got a glitch once but apparently it was unrelated to this and just a coincidence)
 
 BASS_INFO currentDeviceInfo;
+
+CCover cover;
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
@@ -38,7 +35,11 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	b = b + 1;
 	source = BASS_StreamCreateFile(FALSE, queue[b], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open next source
 
+	//TODO: USE LOADSONG HERE!!!
+
 	player.setLen();
+
+	player.setInfo(queue[b]);
 
 	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
 	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); // reset the mixer
@@ -59,7 +60,7 @@ void Player::init(QObject* r) {
 	root = r;
 
 	BASS_GetInfo(&currentDeviceInfo);
-	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, 2, BASS_MIXER_END); //TODO GET FREQ
+	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, 2, BASS_MIXER_END);
 };
 
 void Player::insertToQueue(int pos, char const* song) {
@@ -74,6 +75,8 @@ bool Player::loadSong(int pos) {
 
 	setLen();
 
+	setInfo(queue[pos]);
+
 	return BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
 }
 
@@ -82,6 +85,7 @@ bool Player::clearMixer() {
 	return BASS_ChannelRemoveSync(mixer, sync);
 }
 
+//THIS IS HELLA BROKEN!!!
 bool Player::jump(int direction) {
 	if (direction == -1 && b - 1 < 0) {
 		BASS_ChannelSetPosition(source, 0, BASS_POS_BYTE);
@@ -129,25 +133,14 @@ bool Player::active() {
 	return isPlaying;
 }
 
-/*QWORD Player::getLength() { //not being used right now - may be useful in the future
-	return BASS_ChannelGetLength(source, BASS_POS_BYTE);
-}*/
-
 void Player::setLen() {
 	sLen = BASS_ChannelGetLength(source, BASS_POS_BYTE); //implicit conversion from QWORD to int
 
 	QMetaObject::invokeMethod(root, "setLength", Q_ARG(QVariant, sLen));
 }
 
-/*void Player::setCurrentLen(QWORD pos, bool drag) { //if being dragged or called by timeout
-	root->findChild<QObject*>("dynamicCounter")->setProperty("text", toMinHourFormat(pos));
-	if (!drag) {
-		root->findChild<QObject*>("trackbar")->setProperty("value", pos);
-	}
-}*/
-
-int seekVar;
 bool Player::seek(int to, int width) {
+	int seekVar;
 	seekVar = (to * sLen) / width;
 	if (seekVar == sLen) {
 		BASS_ChannelSetPosition(source, seekVar - 1, BASS_POS_BYTE); //-1 to actually work - if the "entire" value is passed it actually glitches and goes back to where (the position) it was before
@@ -166,8 +159,8 @@ int Player::bytesToSeconds(int bytes) {
 	return BASS_ChannelBytes2Seconds(source, bytes);
 }
 
-int seconds, minutes, remaining;
 QString Player::toMinHourFormat(int bytes) { //it's always based on the "source" stream so no need to pass that
+	int seconds, minutes, remaining;
 	seconds = bytesToSeconds(bytes);
 	minutes = seconds / 60;
 	remaining = seconds - minutes * 60;
@@ -181,6 +174,30 @@ QString Player::toMinHourFormat(int bytes) { //it's always based on the "source"
 
 void Player::updateTime(QWORD newpos) {
 	root->findChild<QObject*>("dynamicCounter")->setProperty("text", toMinHourFormat(newpos));
+}
+
+/*struct songData {
+	QString title;
+	QString artist;
+	QString album;
+	QImage coverArt;
+};*/
+
+#include <QFile>
+#include <QTextStream>
+
+bool Player::setInfo(const char* songDir) {
+	TagLib::FileRef file(songDir); //TODO: create a wider, class based tag retriever that will also be used in library scan, then use it here
+
+	bool c = cover.getCover(file, root->findChild<QObject*>("coverArt"));
+
+	bool d = QMetaObject::invokeMethod(root, "reload");
+
+	return QMetaObject::invokeMethod(root, "setCurrentSongData", 
+		Q_ARG(QVariant, file.tag()->title().toCString()),
+		Q_ARG(QVariant, file.tag()->album().toCString()),
+		Q_ARG(QVariant, file.tag()->artist().toCString())
+	) && c && d;
 }
 
 /*

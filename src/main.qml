@@ -10,12 +10,21 @@ Window {
 	color: "#333333"
 
 	function setLength(length){
-		debugbox.text = "batata"
 		trackbar.songLen = length
 		sC.text = player.toMinHourFormat(length)
 		innerTrackbar.width = 0
 		dCounter.text = "0:00"
 	}
+
+	function setCurrentSongData(title, album, artist){
+		debugbox.text = title + " from " + album + " by " + artist;
+	}
+
+	function reload(){
+		var oldSource = coverArt.source;
+        coverArt.source = ""
+        coverArt.source = oldSource
+    }
 
     Timer {
 		id:timer
@@ -196,6 +205,7 @@ Window {
 	}
 
 	Rectangle {
+		id:coverBox
 		width:256
 		height:256
 		color:"blue"
@@ -203,8 +213,16 @@ Window {
 			bottom: parent.bottom
 			bottomMargin: 67
 		}
+        Image {
+			objectName:"coverArt"
+            id: coverArt
+            anchors.fill:coverBox
+			mipmap: true
+			cache: false
+        }
 	}
 }
 
 //TODO - KNOWN BUG: RELEASED NOT SEEK (-1 THING!!!)
 //TODO - PASS TOMINHOURFORMAT TO HERE
+//TODO - RESET TIMER WHEN SONG BEGINS(???)

@@ -3,8 +3,8 @@
 #include <QQuickView>
 #include <QQmlContext>
 #include <QQmlEngine>
-#include "player.h"
 #include <QVector>
+#include <QQuickImageProvider>
 //#include <QString>
 
 #include "bass.h"
@@ -12,15 +12,15 @@
 
 #include <iostream>
 
+#include "player.h"
+
 QObject *debugger, *trackbar;
-
-//QVector<char const*> queue(10);
-
-//VOID PLAYSOLOSONG CLEAR QUEUE E ADD SONG E PLAY SONG [0]
 
 int main(int argc, char* argv[])
 {
 	Player player;
+
+	CCover coveryay;
 
 	QGuiApplication app(argc, argv);
 	QQmlApplicationEngine engine("main.qml");
@@ -34,11 +34,22 @@ int main(int argc, char* argv[])
 
 	player.init(engine.rootObjects().first()); //maybe this passing of the root object won't be necessary in the future (functions will be called directly from QML already with the necessary, specific objects)
 
+	/*TagLib::FileRef f("03. Lisbon.flac");
+	QImage co("tumblr_pke584kKYX1s0v7b0o5_400.png");
+	//coveryay.getCover(f, co);
+
+	bool save = co.save("image.png");
+
+	engine.rootObjects().first()->findChild<QObject*>("debug")->setProperty("text", save);*/
+
 	//obviously test songs
 	//player.insertToQueue(0, "03. Lisbon.flac");
-	player.insertToQueue(0, "01. Deus Le Volt!.flac");
+	/*player.insertToQueue(0, "01. Deus Le Volt!.flac");
 	player.insertToQueue(1, "02. Spread Your Fire.flac");
-	player.insertToQueue(2, "03. Angels And Demons.flac");
+	player.insertToQueue(2, "03. Angels And Demons.flac");*/
+	player.insertToQueue(0, "03. Lisbon.flac");
+	player.insertToQueue(1, "03. Angels And Demons.flac");
+	player.insertToQueue(2, "Ok Goodnight - Think Again.flac");
 
 	player.loadSong(0);
 
