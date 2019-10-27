@@ -217,7 +217,7 @@ Window {
 			objectName:"coverArt"
             id: coverArt
             anchors.fill:coverBox
-			mipmap: true
+			//mipmap: true
 			cache: false
         }
 	}

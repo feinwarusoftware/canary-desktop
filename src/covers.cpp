@@ -9,83 +9,25 @@
 
 #include "covers.h"
 
-#include <QFile>
-
-#include <QTextStream>
-
-#include <QImage>
-
-#include <QBuffer>
-
 CCover::CCover(QObject* parent) : QObject(parent) {
 
 }
 
-//bool CCover::drawCover(const TagLib::ByteVector& data, QImage img) { not currently using it outside - might cast it and adapt the other functions later
-//TODO - CALL QOBJECT
-bool drawCover(const TagLib::ByteVector& data, QObject* coverContainer) { //TODO LATE: adapt this to receive QImages for manipulation later
-	/*
-	'/' : jpg
-
-	'i' : png
-
-	'R' : gif
-
-	'U' : webp
-
-	'Q' : bmp
-	*/
-	TagLib::ByteVector b = data.toBase64();
-	QString cc = TagLib::String(b).toCString(); //THIS WORKS!!!
-	if (cc.isEmpty()) {
-		return coverContainer->setProperty("source", "");
-	}
-
-	QString format;
-
-	if (cc.at(0) == "/") {
-		format = "jpg";
-	} 
-	else if (cc.at(0) == "i") {
-		format = "png";
-	}
-	else if (cc.at(0) == "R") {
-		format = "gif";
-	}
-	else if (cc.at(0) == "U") {
-		format = "webp";
-	}
-	else if (cc.at(0) == "Q") {
-		format = "bmp";
-	}
-
-	//QString uri = "data:image/" + format + ";base64," + cc;
-
+bool drawCover(const TagLib::ByteVector& data, QObject* coverContainer) { //TODO LATER: adapt this to receive QImages for manipulation later
 	QImage image;
 
 	image.loadFromData((const uchar*)data.data(), data.size());
 
 	QImage resized = image.scaled(256, 256, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-	resized.save("coiso.jpg", "JPG", 100); //100 = uncompressed
-
-	/*const char* f = format.toUpper().toLocal8Bit().data();
-
-	QByteArray bArray;
-	QBuffer buffer(&bArray);
+	QByteArray ba;
+	QBuffer buffer(&ba);
 	buffer.open(QIODevice::WriteOnly);
-	resized.save(&buffer, f);
+	resized.save(&buffer, "JPG", 100); //100 = uncompressed / implicit conversion to JPG https://forum.qt.io/post/258486, whatever the original file format might've been
 
-	QString uri = "data:image/" + format + ";base64," + QString::fromLatin1(bArray.toBase64().data());
+	QString uri = "data:image/jpg;base64," + QString::fromLatin1(ba.toBase64().data());
 
-	return coverContainer->setProperty("source", uri);*/
-
-	/*TODO!!!!!!!!!!!!!!!
-	
-	RESIZE (DIMINISH RAM USAGE)
-	IF COVER EMPTY, URI EMPTY
-	
-	*/
+	return coverContainer->setProperty("source", uri);
 }
 
 //TODO/WARNING: RAM usage may (pretty sure it does) vary according to image size. Resize *before* inserting to QML recommended.

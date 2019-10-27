@@ -22,6 +22,8 @@
 #include <QObject>
 #include <QVariant>
 #include <QString>
+#include <QImage>
+#include <QBuffer>
 
 class CCover : public QObject {
 	Q_OBJECT
