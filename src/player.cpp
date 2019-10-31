@@ -89,13 +89,21 @@ bool Player::clearMixer() {
 	return BASS_ChannelRemoveSync(mixer, sync);
 }
 
-//THIS IS HELLA BROKEN!!!
 bool Player::jump(int direction) {
 	
 	if (direction == 1) {
 		return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 	}
+	else {
+		if (b > 0) {
+			b = b - 2;
 
+			return BASS_Mixer_ChannelRemove(source) /*like trick with the "b - 2" thing - this makes the EndSync callback load  the "next of the previous of the previous" => -2 + 1 = -1*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+		}
+		else {
+			pause(); //TEMPORARY - WILL STOP QUEUE IN THE FUTURE (just like mbee)
+		}
+	}
 
 	return true;
 }
@@ -144,9 +152,7 @@ bool Player::seek(int to, int width) {
 	int seekVar;
 	seekVar = (to * sLen) / width;
 	if (seekVar == sLen) {
-		BASS_ChannelSetPosition(source, seekVar - BASS_ChannelSeconds2Bytes(source, 1), BASS_POS_BYTE); //-1 to actually work - if the "entire" value is passed it actually glitches and goes back to where (the position) it was before
-		//TODO: arithmetic overflow on the previous line???
-		return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+		return jump(1);
 	}
 	BASS_ChannelSetPosition(source, seekVar, BASS_POS_BYTE);
 	return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
