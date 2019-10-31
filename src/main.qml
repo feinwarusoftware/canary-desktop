@@ -51,6 +51,11 @@ Window {
 		}
 	}
 
+	function timerRestart(){
+		innerTrackbar.width = 0
+		timer.restart()
+	}
+
 	Text {
 		id: debugbox
 		objectName: "debug"
@@ -77,14 +82,13 @@ Window {
 				anchors.fill: parent
 				onClicked: {
 					if(player.bytesToSeconds(player.getPosition()) >= 5){
-						innerTrackbar.width = 0
 						player.seek(0, trackbar.width)
 					}
 					else{
 						player.jump(-1)
 					}
 
-					dCounter.text = "0:00"
+					timerRestart()
 				}
 			}
 		}
@@ -100,7 +104,7 @@ Window {
 				onClicked: {
 					player.jump(1)
 
-					dCounter.text = "0:00"
+					timerRestart()
 				}
 			}
 		}
