@@ -49,8 +49,6 @@ Window {
 		else{
 			return timer.stop()
 		}
-
-		//TODO: ADD RESTART TIMER FOR JUMP!!!!
 	}
 
 	Text {
@@ -78,7 +76,15 @@ Window {
 			MouseArea {
 				anchors.fill: parent
 				onClicked: {
-					player.jump(-1)
+					if(player.bytesToSeconds(player.getPosition()) >= 5){
+						innerTrackbar.width = 0
+						player.seek(0, trackbar.width)
+					}
+					else{
+						player.jump(-1)
+					}
+
+					dCounter.text = "0:00"
 				}
 			}
 		}
@@ -93,6 +99,8 @@ Window {
 				anchors.fill: parent
 				onClicked: {
 					player.jump(1)
+
+					dCounter.text = "0:00"
 				}
 			}
 		}
