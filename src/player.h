@@ -31,7 +31,6 @@ public:
 	Q_INVOKABLE bool seek(int to, int width);
 	Q_INVOKABLE int getPosition();
 	Q_INVOKABLE QString toMinHourFormat(int bytes);
-	Q_INVOKABLE void updateTime(QWORD newpos);
 	Q_INVOKABLE int bytesToSeconds(int bytes);
 	bool setInfo(const char* songDir);
 

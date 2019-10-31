@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 	player.insertToQueue(1, "02. Spread Your Fire.flac");
 	player.insertToQueue(2, "03. Angels And Demons.flac");*/
 	player.insertToQueue(0, "03. Lisbon.flac");
-	player.insertToQueue(1, "03. Angels And Demons.flac");
+	player.insertToQueue(1, "09. Illumination Theory_ i. Paradoxe de la Lumière Noire _ ii. Live, Die, Kill _ iii. The Embracing Circle _ iv. The Pursuit of Truth _ v. Surrender, Trust & Passion.flac");
 	player.insertToQueue(2, "Ok Goodnight - Think Again.flac");
 
 	player.loadSong(0);

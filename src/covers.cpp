@@ -113,6 +113,8 @@ bool ExtractMP4(TagLib::MP4::File* file, QObject* target)
 	return false;
 }
 
+
+//TODO: WHEN NO COVER TRY COVER.JPG OR FOLDER.JPG / PNG
 bool CCover::getCover(const TagLib::FileRef& fr, QObject* target) {
 	bool found = false;
 

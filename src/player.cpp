@@ -26,6 +26,10 @@ CCover cover;
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
+
+	root->findChild<QObject*>("debug")->setProperty("text", "fui chamado");
+
+
 	Player player;
 
 	if (b + 1 > queue.size() - 1) {
@@ -87,16 +91,13 @@ bool Player::clearMixer() {
 
 //THIS IS HELLA BROKEN!!!
 bool Player::jump(int direction) {
-	if (direction == -1 && b - 1 < 0) {
-		BASS_ChannelSetPosition(source, 0, BASS_POS_BYTE);
-		return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); //reset the mixer aswell to prevent audio glitching TODO: ADD FADE (TO ALL OF THIS STUFF)
-	} 
-	else if (direction == 1 && b + 1 > queue.size() - 1) {
-		return clearMixer();
-	};
-	clearMixer();
-	loadSong(b + direction); //1 if jump, -1 if back
-	return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+	
+	if (direction == 1) {
+		return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+	}
+
+
+	return true;
 }
 
 bool Player::play() {
@@ -143,7 +144,7 @@ bool Player::seek(int to, int width) {
 	int seekVar;
 	seekVar = (to * sLen) / width;
 	if (seekVar == sLen) {
-		BASS_ChannelSetPosition(source, seekVar - 1, BASS_POS_BYTE); //-1 to actually work - if the "entire" value is passed it actually glitches and goes back to where (the position) it was before
+		BASS_ChannelSetPosition(source, seekVar - BASS_ChannelSeconds2Bytes(source, 1), BASS_POS_BYTE); //-1 to actually work - if the "entire" value is passed it actually glitches and goes back to where (the position) it was before
 		//TODO: arithmetic overflow on the previous line???
 		return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 	}
@@ -170,10 +171,6 @@ QString Player::toMinHourFormat(int bytes) { //it's always based on the "source"
 	else {
 		return QString::number(minutes) + ":0" + QString::number(remaining); //maybe TODO: make the "optional" 0 a variable (it's a stretch but idk hahaha)
 	}
-}
-
-void Player::updateTime(QWORD newpos) {
-	root->findChild<QObject*>("dynamicCounter")->setProperty("text", toMinHourFormat(newpos));
 }
 
 /*struct songData {
