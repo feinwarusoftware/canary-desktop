@@ -33,15 +33,14 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	Player player;
 
 	if (b + 1 > queue.size() - 1) {
-		return;
+		QMetaObject::invokeMethod(root, "clear");
+		return queue.clear();
 	};
 
 	b = b + 1;
 	source = BASS_StreamCreateFile(FALSE, queue[b], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open next source
 
 	//TODO: USE LOADSONG HERE!!!
-
-	player.setLen();
 
 	player.setInfo(queue[b]);
 
@@ -77,11 +76,15 @@ bool Player::loadSong(int pos) {
 
 	source = BASS_StreamCreateFile(FALSE, queue[pos], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
 
-	setLen();
-
 	setInfo(queue[pos]);
 
 	return BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
+}
+
+bool Player::jumpToSong(int pos) {
+	b = pos - 1;
+
+	return BASS_Mixer_ChannelRemove(source) && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 }
 
 bool Player::clearMixer() {
@@ -90,6 +93,9 @@ bool Player::clearMixer() {
 }
 
 bool Player::jump(int direction) {
+	if (!active()) {
+		play();
+	}
 	
 	if (direction == 1) {
 		return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
@@ -101,11 +107,11 @@ bool Player::jump(int direction) {
 			return BASS_Mixer_ChannelRemove(source) /*like trick with the "b - 2" thing - this makes the EndSync callback load  the "next of the previous of the previous" => -2 + 1 = -1*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 		}
 		else {
-			pause(); //TEMPORARY - WILL STOP QUEUE IN THE FUTURE (just like mbee)
+			return pause(); //TEMPORARY - WILL STOP QUEUE IN THE FUTURE (just like mbee)
 		}
 	}
 
-	return true;
+	return false;
 }
 
 bool Player::play() {
@@ -140,12 +146,6 @@ bool Player::changeVolume(float v) {
 
 bool Player::active() {
 	return isPlaying;
-}
-
-void Player::setLen() {
-	sLen = BASS_ChannelGetLength(source, BASS_POS_BYTE); //implicit conversion from QWORD to int
-
-	QMetaObject::invokeMethod(root, "setLength", Q_ARG(QVariant, sLen));
 }
 
 bool Player::seek(int to, int width) {
@@ -192,24 +192,25 @@ QString Player::toMinHourFormat(int bytes) { //it's always based on the "source"
 bool Player::setInfo(const char* songDir) {
 	TagLib::FileRef file(songDir); //TODO: create a wider, class based tag retriever that will also be used in library scan, then use it here
 
-	bool c = cover.getCover(file, root->findChild<QObject*>("coverArt"));
+	bool c = cover.getCover(file, root->findChild<QObject*>("coverArt"), 256, 256); //256x256 is the current size of the "Now Playing" cover display. may (probably) change later
 
 	bool d = QMetaObject::invokeMethod(root, "reload");
+
+	sLen = BASS_ChannelGetLength(source, BASS_POS_BYTE); //implicit conversion from QWORD to int
 
 	return QMetaObject::invokeMethod(root, "setCurrentSongData", 
 		Q_ARG(QVariant, file.tag()->title().toCString()),
 		Q_ARG(QVariant, file.tag()->album().toCString()),
 		Q_ARG(QVariant, file.tag()->artist().toCString())
-	) && c && d;
+	) && c && d && QMetaObject::invokeMethod(root, "setLength", Q_ARG(QVariant, sLen));
 }
 
 /*
 TODO FUNCTIONS:
 - (automatically) Change output device when main device changes
 - remove songs from queue
-- get freq in init (mixer init) DONE
-- fix array
 - actually do something when queue ends
 - WAVEFORM: calculate each pixels byte value and jump from/by those bytes and drawing them (their peaks)
-- remove unused libraries
+- space pause
+- fix -1 bug
 */

@@ -29,7 +29,7 @@ class CCover : public QObject {
 	Q_OBJECT
 public:
 	explicit CCover(QObject* parent = 0);
-	bool getCover(const TagLib::FileRef& fr, QObject* target);
+	bool getCover(const TagLib::FileRef& fr, QObject* target, int w, int h);
 	//bool drawCover(const TagLib::ByteVector& data, QImage img);
 
 signals:

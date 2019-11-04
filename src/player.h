@@ -27,12 +27,12 @@ public:
 	Q_INVOKABLE bool changeVolume(float v);
 	Q_INVOKABLE bool active();
 	Q_INVOKABLE bool pause(bool drag = 0);
-	void setLen();
 	Q_INVOKABLE bool seek(int to, int width);
 	Q_INVOKABLE int getPosition();
 	Q_INVOKABLE QString toMinHourFormat(int bytes);
 	Q_INVOKABLE int bytesToSeconds(int bytes);
 	bool setInfo(const char* songDir);
+	Q_INVOKABLE bool jumpToSong(int pos);
 
 signals:
 
