@@ -16,6 +16,8 @@
 
 QObject *debugger, *trackbar;
 
+bool hasLoadedSong = false; //used on first init or when queue finishes
+
 int main(int argc, char* argv[])
 {
 	Player player;
@@ -48,10 +50,13 @@ int main(int argc, char* argv[])
 	player.insertToQueue(1, "02. Spread Your Fire.flac");
 	player.insertToQueue(2, "03. Angels And Demons.flac");*/
 	player.insertToQueue(0, "03. Lisbon.flac");
-	player.insertToQueue(1, "09. Illumination Theory_ i. Paradoxe de la Lumière Noire _ ii. Live, Die, Kill _ iii. The Embracing Circle _ iv. The Pursuit of Truth _ v. Surrender, Trust & Passion.flac");
+	player.insertToQueue(1, "G:/Músicas/KARMA/2006 - Leave Now!!!/02. Crawl.flac");
 	player.insertToQueue(2, "Ok Goodnight - Think Again.flac");
+	player.insertToQueue(3, "G:/Músicas/Stream of Passion/Embrace The Storm/03. Deceiver.flac");
 
-	player.loadSong(0);
+	if (!hasLoadedSong) {
+		player.loadSong(0);
+	}
 
 	/*QQuickView* view = new QQuickView;
 	view->setSource(QUrl::fromLocalFile("main.qml"));

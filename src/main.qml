@@ -26,6 +26,15 @@ Window {
         coverArt.source = oldSource
     }
 
+	function clear(){
+		/*player.pause();
+		timer.stop();*/
+		coverArt.source = "";
+		debugbox.text = "queue ended";
+		dCounter.text = "0:00";
+		sC.text = "0:00";
+	}
+
     Timer {
 		id:timer
 		property int currentPos
@@ -83,6 +92,7 @@ Window {
 				onClicked: {
 					if(player.bytesToSeconds(player.getPosition()) >= 5){
 						player.seek(0, trackbar.width)
+						player.play()
 					}
 					else{
 						player.jump(-1)
@@ -115,7 +125,6 @@ Window {
 			x: 91
 			y: 20
 			color:"red"
-
 			MouseArea {
 				anchors.fill: parent
 				onClicked: {
