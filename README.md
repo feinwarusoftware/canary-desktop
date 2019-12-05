@@ -1,2 +1,2 @@
 # canary-desktop
-💻 The Canary desktop app written in Electron
+💻 The Canary desktop app, written in C++, using Qt.
