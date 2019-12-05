@@ -1,56 +1,100 @@
 #include "player.h"
 
-Player::Player(QObject* parent) : QObject(parent) {
+#ifdef _WIN32
+#define PLATFORM 0
 
-}
+#elif __linux__
+#define PLATFORM 1
+
+#elif __APPLE__
+#define PLATFORM 2
+
+#endif
+
+BASS_INFO currentDeviceInfo;
 
 HSTREAM mixer, source;
 HSYNC sync;
 
-int b; //current (or next?) song
-
-float volume = 1;
-
-QWORD sLen;
-
-QObject* root;
+int b; //variable used as position controller
 
 bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actually is (that is controlled by BASS itself)
 				//e.g.: when you're dragging the playback bar, BASS is NOT playing (it's paused), but isPlaying = TRUE, so when you release the button it continues playing as intended
 
-QVector<char const*> queue; //apparently this works so fine (I got a glitch once but apparently it was unrelated to this and just a coincidence)
+float volume = 1;
 
-BASS_INFO currentDeviceInfo;
+QVector<char const*> queue;
 
-CCover cover;
+QObject* root;
+
+Player::Player(QObject* parent) : QObject(parent) {
+
+}
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
-
-	root->findChild<QObject*>("debug")->setProperty("text", "fui chamado");
-
-
 	Player player;
 
 	if (b + 1 > queue.size() - 1) {
-		QMetaObject::invokeMethod(root, "clear");
 		return queue.clear();
 	};
 
 	b = b + 1;
-	source = BASS_StreamCreateFile(FALSE, queue[b], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open next source
 
-	//TODO: USE LOADSONG HERE!!!
+    player.loadSong(b);
 
-	player.setInfo(queue[b]);
-
-	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
-	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); // reset the mixer
-	//no need to recall the callback, it is called every time the mixer "ends" (it's attached to the mixer)
+	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 }
 
-void Player::init(QObject* r) {
-	BASS_PluginLoad("bassflac.dll", 0); //TODO: add more plugins
+bool Player::loadPlugins() {
+	/*
+		WMA playback not supported - would be Windows exclusive and it's not widely used anyways - I, personally, never used it in years
+		MIDI plyaback not supported - didn't want to deal with the whole soundfont stuff - sorry for the fellow old-school soundtrackers!
+		SPX and MPC not supported cause... does anybody use this... at all... for music, at least?
+	*/
+
+	if (PLATFORM == 0) { //is WINDOWS
+		//MAYBE TODO: redo this based on prefixes (lib) and sufixes (.dll, .so, .dylib, etc.)
+		return
+			BASS_PluginLoad("bassflac.dll", 0)
+			&& BASS_PluginLoad("basswv.dll", 0)
+			&& BASS_PluginLoad("bassopus.dll", 0)
+			&& BASS_PluginLoad("bassalac.dll", 0)
+			&& BASS_PluginLoad("bass_ape.dll", 0)
+			&& BASS_PluginLoad("bass_aac.dll", 0)
+			&& BASS_PluginLoad("bass_ac3.dll", 0)
+			&& BASS_PluginLoad("bass_tta.dll", 0);
+			//&& BASS_PluginLoad("basshls.dll", 0) //FUTURE FEATURE, when podcasts are supported
+	}
+	else if (PLATFORM == 1) { //is Linux
+		return
+			BASS_PluginLoad("libbassflac.so", 0)
+			&& BASS_PluginLoad("libbasswv.so", 0)
+			&& BASS_PluginLoad("libbassopus.so", 0)
+			&& BASS_PluginLoad("libbassalac.so", 0)
+			&& BASS_PluginLoad("libbass_ape.so", 0)
+			&& BASS_PluginLoad("libbass_aac.so", 0)
+			&& BASS_PluginLoad("libbass_ac3.so", 0)
+			&& BASS_PluginLoad("libbass_tta.so", 0);
+	}
+	else if (PLATFORM == 2) {
+		return //some of the formats are natively supported by Mac, so plugins are not necessary
+			BASS_PluginLoad("libbassflac.dylib", 0)
+			&& BASS_PluginLoad("libbasswv.dylib", 0)
+			&& BASS_PluginLoad("libbassopus.dylib", 0)
+			&& BASS_PluginLoad("libbass_ape.dylib", 0)
+			&& BASS_PluginLoad("libbass_ac3.dylib", 0)
+			&& BASS_PluginLoad("libbass_tta.dylib", 0);
+	}
+}
+
+void Player::init(QObject* r){
+	root = r; //expose the QML engine to the player as a global variable
+
+    BASS_SetConfig(BASS_CONFIG_DEV_DEFAULT, 1); //change output device on the fly
+
+	loadPlugins();
+
 	//TODO: add notifier/throw error/error parsing
 	BASS_Init(
 		-1, //default device
@@ -60,44 +104,85 @@ void Player::init(QObject* r) {
 		NULL
 	);
 
-	root = r;
-
 	BASS_GetInfo(&currentDeviceInfo);
-	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, 2, BASS_MIXER_END);
-};
+	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, currentDeviceInfo.speakers, BASS_MIXER_END);
+    sync = BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0);
+}
 
 void Player::insertToQueue(int pos, char const* song) {
 	queue.insert(pos, song);
 }
 
-bool Player::loadSong(int pos) {
+int Player::getCSLengthInSeconds(){
+	return BASS_ChannelBytes2Seconds(source, BASS_ChannelGetLength(source, BASS_POS_BYTE));
+}
+
+bool Player::loadSong(int pos){
 	b = pos;
-	sync = BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0);
 
 	source = BASS_StreamCreateFile(FALSE, queue[pos], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
 
-	setInfo(queue[pos]);
+	QMetaObject::invokeMethod(root, "updateCSInfo", Q_ARG(QVariant, getCSLengthInSeconds()));
 
 	return BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
 }
 
-bool Player::jumpToSong(int pos) {
-	b = pos - 1;
+/*int Player::getPosition() { //in Q_INVOKABLE functions, always CONVERT QWORD TO INT so it's QML READABLE
+	return BASS_ChannelGetPosition(source, BASS_POS_BYTE);
+}*/
 
-	return BASS_Mixer_ChannelRemove(source) && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+//changed from int to double for precision
+/*int*/ double Player::getPositionInSeconds() { //in Q_INVOKABLE functions, always CONVERT QWORD TO INT so it's QML READABLE
+	return BASS_ChannelBytes2Seconds(source, BASS_ChannelGetPosition(source, BASS_POS_BYTE));
 }
 
-bool Player::clearMixer() {
-	BASS_Mixer_ChannelRemove(source);
-	return BASS_ChannelRemoveSync(mixer, sync);
+bool Player::play() {
+	if (!isPlaying) { //verifying in case isPlaying is already TRUE (~~this happens while the trackbar is being dragged, for example, as a play function is called when it's released~~ not anymore)
+		isPlaying = TRUE;
+	}
+
+	if (BASS_ChannelGetPosition(source, BASS_POS_BYTE) == 0) {
+		return BASS_ChannelPlay(mixer, FALSE);
+	}
+
+	return BASS_ChannelPlay(mixer, FALSE) && BASS_ChannelSlideAttribute(mixer, BASS_ATTRIB_VOL, volume, 250);
 }
 
-bool Player::jump(int direction) {
-	if (!active()) {
+bool Player::pause() {
+	isPlaying = FALSE;
+
+	BASS_ChannelSlideAttribute(
+		mixer,
+		BASS_ATTRIB_VOL,
+		0,
+		250
+	);
+	return BASS_ChannelPause(mixer);
+}
+
+bool Player::changeVolume(float v) {
+	volume = v;
+	return BASS_ChannelSetAttribute(mixer, BASS_ATTRIB_VOL, volume);
+}
+
+bool Player::seek(double to) {
+	QWORD toInBytes = BASS_ChannelSeconds2Bytes(source, to);
+
+	bool fadeOut = BASS_ChannelSlideAttribute(mixer, BASS_ATTRIB_VOL, 0, 100); //fade out for 100 miliseconds
+	bool seekToPosition = BASS_ChannelSetPosition(source, toInBytes, BASS_POS_BYTE);
+	bool resetMixer = BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+	bool fadeIn = BASS_ChannelSlideAttribute(mixer, BASS_ATTRIB_VOL, volume, 100);
+
+	return fadeOut && seekToPosition && resetMixer && fadeIn;
+}
+
+bool Player::jump(bool direction) {
+	//if (!active()) {
+	if(!isPlaying){
 		play();
 	}
 	
-	if (direction == 1) {
+	if (direction) {
 		return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 	}
 	else {
@@ -114,103 +199,4 @@ bool Player::jump(int direction) {
 	return false;
 }
 
-bool Player::play() {
-	if (!isPlaying) { //verifying in case isPlaying is already TRUE (this happens while the trackbar is being dragged, for example, as a play function is called when it's released)
-		isPlaying = TRUE;
-	}
-	QMetaObject::invokeMethod(root, "timerControl", Q_ARG(QVariant, 1));
-	if (getPosition() == 0) {
-		return BASS_ChannelPlay(mixer, FALSE);
-	}
-	return BASS_ChannelPlay(mixer, FALSE) && BASS_ChannelSlideAttribute(mixer, BASS_ATTRIB_VOL, volume, 100);
-}
-
-bool Player::pause(bool drag) {
-	if (!drag) {
-		isPlaying = FALSE;
-	}
-	BASS_ChannelSlideAttribute(
-		mixer,
-		BASS_ATTRIB_VOL,
-		0,
-		100
-	);
-	QMetaObject::invokeMethod(root, "timerControl", Q_ARG(QVariant, 0));
-	return BASS_ChannelPause(mixer);
-}
-
-bool Player::changeVolume(float v) {
-	volume = v;
-	return BASS_ChannelSetAttribute(mixer, BASS_ATTRIB_VOL, volume);
-}
-
-bool Player::active() {
-	return isPlaying;
-}
-
-bool Player::seek(int to, int width) {
-	int seekVar;
-	seekVar = (to * sLen) / width;
-	if (seekVar == sLen) {
-		return jump(1);
-	}
-	BASS_ChannelSetPosition(source, seekVar, BASS_POS_BYTE);
-	return BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
-}
-
-int Player::getPosition() { //in Q_INVOKABLE functions, always CONVERT QWORD TO INT so it's QML READABLE
-	return BASS_ChannelGetPosition(source, BASS_POS_BYTE);
-}
-
-int Player::bytesToSeconds(int bytes) {
-	return BASS_ChannelBytes2Seconds(source, bytes);
-}
-
-QString Player::toMinHourFormat(int bytes) { //it's always based on the "source" stream so no need to pass that
-	int seconds, minutes, remaining;
-	seconds = bytesToSeconds(bytes);
-	minutes = seconds / 60;
-	remaining = seconds - minutes * 60;
-	if (remaining >= 10) {
-		return QString::number(minutes) + ":" + QString::number(remaining);
-	}
-	else {
-		return QString::number(minutes) + ":0" + QString::number(remaining); //maybe TODO: make the "optional" 0 a variable (it's a stretch but idk hahaha)
-	}
-}
-
-/*struct songData {
-	QString title;
-	QString artist;
-	QString album;
-	QImage coverArt;
-};*/
-
-#include <QFile>
-#include <QTextStream>
-
-bool Player::setInfo(const char* songDir) {
-	TagLib::FileRef file(songDir); //TODO: create a wider, class based tag retriever that will also be used in library scan, then use it here
-
-	bool c = cover.getCover(file, root->findChild<QObject*>("coverArt"), 256, 256); //256x256 is the current size of the "Now Playing" cover display. may (probably) change later
-
-	bool d = QMetaObject::invokeMethod(root, "reload");
-
-	sLen = BASS_ChannelGetLength(source, BASS_POS_BYTE); //implicit conversion from QWORD to int
-
-	return QMetaObject::invokeMethod(root, "setCurrentSongData", 
-		Q_ARG(QVariant, file.tag()->title().toCString()),
-		Q_ARG(QVariant, file.tag()->album().toCString()),
-		Q_ARG(QVariant, file.tag()->artist().toCString())
-	) && c && d && QMetaObject::invokeMethod(root, "setLength", Q_ARG(QVariant, sLen));
-}
-
-/*
-TODO FUNCTIONS:
-- (automatically) Change output device when main device changes
-- remove songs from queue
-- actually do something when queue ends
-- WAVEFORM: calculate each pixels byte value and jump from/by those bytes and drawing them (their peaks)
-- space pause
-- fix -1 bug
-*/
+//TODO: remove drag from pause

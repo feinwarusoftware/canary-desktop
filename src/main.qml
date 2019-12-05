@@ -1,250 +1,99 @@
-import QtQuick 2.13
-import QtQuick.Window 2.13
-import QtQuick.Controls 2.5
+import QtQuick 2.3
+import QtQuick.Window 2.3
+import QtQuick.Controls 2.3
+import QtWebChannel 1.0
+import QtWebEngine 1.1
 
 Window {
     visible: true
-    width: 1500
-    height: 900
-    title: qsTr("Canary")
-	color: "#333333"
+    width: 1280
+    height: 480
+    title: qsTr("Hello World")
 
-	function setLength(length){
-		trackbar.songLen = length
-		sC.text = player.toMinHourFormat(length)
-		innerTrackbar.width = 0
-		dCounter.text = "0:00"
-	}
+    WebEngineView {
+        anchors.fill: parent
+        url: "qrc:/index.html"
 
-	function setCurrentSongData(title, album, artist){
-		debugbox.text = title + " from " + album + " by " + artist;
-	}
-
-	function reload(){
-		var oldSource = coverArt.source;
-        coverArt.source = ""
-        coverArt.source = oldSource
+        webChannel: channel
     }
 
-	function clear(){
-		/*player.pause();
-		timer.stop();*/
-		coverArt.source = "";
-		debugbox.text = "queue ended";
-		dCounter.text = "0:00";
-		sC.text = "0:00";
+	Text{
+		id:debug
+		text:"Oi, eu sou o debug"
+		font.pointSize: 24
+		y:200
 	}
+
+	function updateCSInfo(length){
+		//debug.text = "oi, a nova length:" + length;
+
+		playerObject.setCSInfo(length);
+	}
+
+    QtObject {
+        id: playerObject
+
+        // ID, under which this object will be known at WebEngineView side
+        WebChannel.id: "playerObject"
+
+        signal setCSInfo(int len);
+        signal setCSPos(int pos);
+
+        function play() {
+            timer.start()
+            return player.play();
+        }
+
+		function pause() {
+            timer.stop()
+            return player.pause();
+        }
+
+        function changeVolume(val){
+            return player.changeVolume(val);
+        }
+
+		function loadSong(n){
+			return player.loadSong(n);
+		}
+
+        function seek(to){
+			timer.restart();
+            return player.seek(to);
+        }
+
+        function jump(direction){
+            if(direction == "previous"){
+                if(player.getPositionInSeconds() >= 5){
+                    player.seek(0)
+                }
+                else{
+                    player.jump(0);
+                }
+            }
+            else{
+                player.jump(1)
+            }
+
+            timer.restart()
+        }
+    }
 
     Timer {
 		id:timer
-		property int currentPos
-        interval: 500; //to 1000?
+		property double currentPos
+        interval: 1000; //to 1000?
 		running: false 
 		repeat: true
 		triggeredOnStart: true //set to false(?)
         onTriggered: {
-			currentPos = player.getPosition()
-			dCounter.text = player.toMinHourFormat(currentPos)
-			innerTrackbar.width = parseInt((currentPos * trackbar.width) / trackbar.songLen)
+            currentPos = player.getPositionInSeconds()
+            playerObject.setCSPos(currentPos);
 		}
     }
 
-	//pass toMinHourFormat to JS
-
-	function timerControl(arg){
-		if(arg == 1){
-			return timer.start()
-		}
-		else{
-			return timer.stop()
-		}
-	}
-
-	function timerRestart(){
-		innerTrackbar.width = 0
-		timer.restart()
-	}
-
-	Text {
-		id: debugbox
-		objectName: "debug"
-		text: "oi" 
-		font.family: "Helvetica"
-		font.pointSize: 24
-		color: "red"
-	}
-
-	Rectangle { //pass this to multiple files later on - CONTROLS BAR BG
-		width: 1500
-		height: 67
-		color: "#ffa800"
-		anchors.bottom: parent.bottom //or root.bottom?
-
-		Rectangle {
-			objectName: "back"
-			width:24
-			height: 18
-			x: 44
-			y: 25
-			color:"red"
-			MouseArea {
-				anchors.fill: parent
-				onClicked: {
-					if(player.bytesToSeconds(player.getPosition()) >= 5){
-						player.seek(0, trackbar.width)
-						player.play()
-					}
-					else{
-						player.jump(-1)
-					}
-
-					timerRestart()
-				}
-			}
-		}
-
-		Rectangle {
-			width:24
-			height: 18
-			x: 138
-			y: 25
-			color:"red"
-			MouseArea {
-				anchors.fill: parent
-				onClicked: {
-					player.jump(1)
-
-					timerRestart()
-				}
-			}
-		}
-
-		Rectangle {
-			width:24
-			height: 28
-			x: 91
-			y: 20
-			color:"red"
-			MouseArea {
-				anchors.fill: parent
-				onClicked: {
-					if(player.active())
-						player.pause()
-					else
-						player.play()
-					}
-			}
-		}
-
-		Slider {
-			from: 0
-			value: 1
-			to: 1
-			x: 170
-			y: 20
-			handle: Rectangle { //"Rectangle" necessary?
-				visible:false
-			}
-			onValueChanged:{
-				//debugbox.text = trackbar.songLen
-				player.changeVolume(this.value)
-			}
-		}
-
-		Rectangle{
-			id:trackbar
-			objectName:"trackbar"
-			property int songLen: 0
-			x:370
-			y:5
-			width:700
-			height:50
-			color:"green"
-			Rectangle{
-				objectName:"innerTrackbar"
-				id:innerTrackbar
-				//width:5
-				width:0
-				height:parent.height
-				color:"red"
-			}
-			MouseArea{
-				anchors.fill: parent
-				onClicked:{
-					innerTrackbar.width = this.mouseX
-					player.seek(innerTrackbar.width, parent.width)
-				}
-				onPressed:{
-					player.pause(1)
-					innerTrackbar.width = this.mouseX //necessary? (currently think so, try holding but not moving)
-					player.seek(innerTrackbar.width, parent.width)
-				}
-				onReleased:{
-					if(player.active())
-						player.play()
-					player.seek(innerTrackbar.width, parent.width)
-				}
-				onPositionChanged:{
-
-					if(this.mouseX < 0){ //(apparently) had a little logic problem before (seemed to be related to order) but now it seems to be working
-						innerTrackbar.width = 0
-					}
-					else if(this.mouseX <= this.width){
-						innerTrackbar.width = this.mouseX
-					}
-					else{
-						innerTrackbar.width = parent.width
-					}
-
-					debugbox.text = parseInt((innerTrackbar.width * parent.songLen) / parent.width);
-
-
-					dCounter.text = player.toMinHourFormat(parseInt((innerTrackbar.width * parent.songLen) / parent.width))
-				}
-			}
-		}
-
-		Text{
-			id:sC
-			objectName:"staticCounter"
-			anchors.bottom: parent.bottom
-			x: 1450
-			text:"0:00"
-			color:"blue"
-			font.pointSize: 14
-		}
-
-		Text{
-			id:dCounter
-			objectName:"dynamicCounter"
-			anchors.bottom: parent.bottom
-			text:"0:00"
-			color:"blue"
-			font.pointSize: 14
-			x: 1400
-		}
-	}
-
-	Rectangle {
-		id:coverBox
-		width:256
-		height:256
-		color:"blue"
-		anchors {
-			bottom: parent.bottom
-			bottomMargin: 67
-		}
-        Image {
-			objectName:"coverArt"
-            id: coverArt
-            anchors.fill:coverBox
-			//mipmap: true
-			cache: false
-        }
-	}
+    WebChannel {
+        id: channel
+        registeredObjects: [playerObject]
+    }
 }
-
-//TODO - KNOWN BUG: RELEASED NOT SEEK (-1 THING!!!)
-//TODO - PASS TOMINHOURFORMAT TO HERE
-//TODO - RESET TIMER WHEN SONG BEGINS(???)
-//TODO - REFORM TIMER (PASS SECONDS, SECONDS TO MM:SS IN QML)
