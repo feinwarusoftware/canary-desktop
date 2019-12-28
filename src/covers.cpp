@@ -1,34 +1,22 @@
-/*The following code is an adaptation of the original Rainmeeter project one. It is shared under the same license.*/
-
-/* Copyright (C) 2011 Rainmeter Project Developers
- *
- * This Source Code Form is subject to the terms of the GNU General Public
- * License; either version 2 of the License, or (at your option) any later
- * version. If a copy of the GPL was not distributed with this file, You can
- * obtain one at <https://www.gnu.org/licenses/gpl-2.0.html>. */
-
 #include "covers.h"
 
 CCover::CCover(QObject* parent) : QObject(parent) {
 
 }
 
-bool drawCover(const TagLib::ByteVector& data, QObject* coverContainer, int w, int h) { //TODO LATER: adapt this to receive QImages for manipulation later
+bool drawCover(const TagLib::ByteVector& data, QImage& imgObj, int w, int h) { //TODO LATER: adapt this to receive QImages for manipulation later
 	QImage image;
 
-	image.loadFromData((const uchar*)data.data(), data.size());
+	bool imageLoad = image.loadFromData((const uchar*)data.data(), data.size());
 
 	QImage resized = image.scaled(w, h, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-	QByteArray ba;
-	QBuffer buffer(&ba);
-	buffer.open(QIODevice::WriteOnly);
-	resized.save(&buffer, "JPG", 100); //100 = uncompressed / implicit conversion to JPG https://forum.qt.io/post/258486, whatever the original file format might've been
+	imgObj = resized;
 
-	QString uri = "data:image/jpg;base64," + QString::fromLatin1(ba.toBase64().data());
-
-	return coverContainer->setProperty("source", uri);
+	return imageLoad;
 }
+
+//TRANSFORMAR EM VERSÃO QIMAGE -> PASSAR PRA BASE64 NO PLAYER PQ ASSIM DÁ PRA APROVEITAR A FUNÇÃO PRA FAZER OS JPEG
 
 //UPDATE -> GETGOVER / INJECTOVER / DRAWCOVER
 
@@ -38,15 +26,13 @@ changes may be done here in the future to contemplate the pre-saving (caching) o
 basically we would cache the cover of the album like we cache the metadata, to display it as a miniature and then bigger on the display, when it's played.
 we would cache the QImage to we wouldn't need to extract it twice - only resize it in different sizes. since it's not being used right now (cover is only being used in album and current song)
 not changes were made to the code yet
-
 Personal note: I personally prefer to not use thumbnails at all. Too much RAM usage and visual polution, with really no great advantage to counter. I'd go for a "more Spotify" approach.
-
 My suggested approcah by now, as I was about to create a info caching system is: to not have a live caching system, but rather use the information stored in Canary's libraries.
 */
 
 //TODO/WARNING: RAM usage may (pretty sure it does) vary according to image size. Resize *before* inserting to QML recommended.
 
-bool ExtractAPE(TagLib::APE::Tag* tag, QObject* target, int w, int h)
+bool ExtractAPE(TagLib::APE::Tag* tag, QImage& target, int w, int h)
 {
 	const TagLib::APE::ItemListMap& listMap = tag->itemListMap();
 	if (listMap.contains("COVER ART (FRONT)"))
@@ -64,7 +50,7 @@ bool ExtractAPE(TagLib::APE::Tag* tag, QObject* target, int w, int h)
 	return false;
 }
 
-bool ExtractID3(TagLib::ID3v2::Tag* tag, QObject* target, int w, int h)
+bool ExtractID3(TagLib::ID3v2::Tag* tag, QImage& target, int w, int h)
 {
 	const TagLib::ID3v2::FrameList& frameList = tag->frameList("APIC");
 	if (!frameList.isEmpty())
@@ -77,7 +63,7 @@ bool ExtractID3(TagLib::ID3v2::Tag* tag, QObject* target, int w, int h)
 	return false;
 }
 
-bool ExtractFLAC(TagLib::FLAC::File* file, QObject* target, int w, int h)
+bool ExtractFLAC(TagLib::FLAC::File* file, QImage& target, int w, int h)
 {
 	const TagLib::List<TagLib::FLAC::Picture*>& picList = file->pictureList();
 	if (!picList.isEmpty())
@@ -90,7 +76,7 @@ bool ExtractFLAC(TagLib::FLAC::File* file, QObject* target, int w, int h)
 	return false;
 }
 
-bool ExtractASF(TagLib::ASF::File* file, QObject* target, int w, int h)
+bool ExtractASF(TagLib::ASF::File* file, QImage& target, int w, int h)
 {
 	const TagLib::ASF::AttributeListMap& attrListMap = file->tag()->attributeListMap();
 	if (attrListMap.contains("WM/Picture"))
@@ -110,7 +96,7 @@ bool ExtractASF(TagLib::ASF::File* file, QObject* target, int w, int h)
 	return false;
 }
 
-bool ExtractMP4(TagLib::MP4::File* file, QObject* target, int w, int h)
+bool ExtractMP4(TagLib::MP4::File* file, QImage& target, int w, int h)
 {
 	TagLib::MP4::Tag* tag = file->tag();
 	const TagLib::MP4::ItemListMap& itemListMap = tag->itemListMap();
@@ -129,10 +115,10 @@ bool ExtractMP4(TagLib::MP4::File* file, QObject* target, int w, int h)
 
 
 //TODO: WHEN NO COVER TRY COVER.JPG OR FOLDER.JPG / PNG
-bool CCover::getCover(const TagLib::FileRef& fr, QObject* target, int w, int h) {
+bool CCover::getCover(const TagLib::FileRef& fr, QImage& target, int w, int h) {
 	bool found = false;
 
-	if (TagLib::MPEG::File * file = dynamic_cast<TagLib::MPEG::File*>(fr.file()))
+	if (TagLib::MPEG::File* file = dynamic_cast<TagLib::MPEG::File*>(fr.file()))
 	{
 		if (file->ID3v2Tag())
 		{
@@ -143,7 +129,7 @@ bool CCover::getCover(const TagLib::FileRef& fr, QObject* target, int w, int h) 
 			found = ExtractAPE(file->APETag(), target, w, h);
 		}
 	}
-	else if (TagLib::FLAC::File * file = dynamic_cast<TagLib::FLAC::File*>(fr.file()))
+	else if (TagLib::FLAC::File* file = dynamic_cast<TagLib::FLAC::File*>(fr.file()))
 	{
 		found = ExtractFLAC(file, target, w, h);
 
@@ -152,28 +138,47 @@ bool CCover::getCover(const TagLib::FileRef& fr, QObject* target, int w, int h) 
 			found = ExtractID3(file->ID3v2Tag(), target, w, h);
 		}
 	}
-	else if (TagLib::MP4::File * file = dynamic_cast<TagLib::MP4::File*>(fr.file()))
+	else if (TagLib::MP4::File* file = dynamic_cast<TagLib::MP4::File*>(fr.file()))
 	{
 		found = ExtractMP4(file, target, w, h);
 	}
-	else if (TagLib::ASF::File * file = dynamic_cast<TagLib::ASF::File*>(fr.file()))
+	else if (TagLib::ASF::File* file = dynamic_cast<TagLib::ASF::File*>(fr.file()))
 	{
 		found = ExtractASF(file, target, w, h);
 	}
-	else if (TagLib::APE::File * file = dynamic_cast<TagLib::APE::File*>(fr.file()))
+	else if (TagLib::APE::File* file = dynamic_cast<TagLib::APE::File*>(fr.file()))
 	{
 		if (file->APETag())
 		{
 			found = ExtractAPE(file->APETag(), target, w, h);
 		}
 	}
-	else if (TagLib::MPC::File * file = dynamic_cast<TagLib::MPC::File*>(fr.file()))
+	else if (TagLib::MPC::File* file = dynamic_cast<TagLib::MPC::File*>(fr.file()))
 	{
 		if (file->APETag())
 		{
 			found = ExtractAPE(file->APETag(), target, w, h);
+		}
+	}
+	else if (TagLib::RIFF::WAV::File* file = dynamic_cast<TagLib::RIFF::WAV::File*>(fr.file())) {
+		//this kind of file has ID3v2 tags https://taglib.org/api/classTagLib_1_1RIFF_1_1WAV_1_1File.html#a2bca63e227b0c2fa6cdd0c181360de96
+		if (!found && file->ID3v2Tag())
+		{
+			found = ExtractID3(file->ID3v2Tag(), target, w, h);
+		}
+	}
+	else if (TagLib::RIFF::AIFF::File* file = dynamic_cast<TagLib::RIFF::AIFF::File*>(fr.file())) {
+		//this kind of file also has ID3v2 tags https://taglib.org/api/classTagLib_1_1RIFF_1_1AIFF_1_1File.html#add1a0d200c2356eb08c76057cdc54312
+		//does this work or needs verification? note that ->tag() returns a pointer regardless of it having real tags or not
+		if (!found && file->tag())
+		{
+			found = ExtractID3(file->tag(), target, w, h);
 		}
 	}
 
 	return found;
 }
+
+/*
+TODO: LOOK FOR COVER.JPG/FOLDER.JPG or whatever image format
+*/
