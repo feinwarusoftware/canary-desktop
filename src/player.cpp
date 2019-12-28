@@ -1,5 +1,7 @@
 #include "player.h"
 
+#include <QDebug>
+
 #ifdef _WIN32
 #define PLATFORM 0
 
@@ -10,6 +12,8 @@
 #define PLATFORM 2
 
 #endif
+
+CCover cover;
 
 BASS_INFO currentDeviceInfo;
 
@@ -23,7 +27,7 @@ bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actu
 
 float volume = 1;
 
-QVector<char const*> queue;
+QVector<QString> queue;
 
 QObject* root;
 
@@ -60,7 +64,7 @@ bool Player::loadPlugins() {
 			&& BASS_PluginLoad("basswv.dll", 0)
 			&& BASS_PluginLoad("bassopus.dll", 0)
 			&& BASS_PluginLoad("bassalac.dll", 0)
-			&& BASS_PluginLoad("bass_ape.dll", 0)
+			&& BASS_PluginLoad("bass_ape.dll", 0) //TODO: MP4 tupport(?)
 			&& BASS_PluginLoad("bass_aac.dll", 0)
 			&& BASS_PluginLoad("bass_ac3.dll", 0)
 			&& BASS_PluginLoad("bass_tta.dll", 0);
@@ -109,8 +113,18 @@ void Player::init(QObject* r){
     sync = BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0);
 }
 
-void Player::insertToQueue(int pos, char const* song) {
+//void Player::insertToQueue(int pos, char const* song) {
+void Player::insertToQueue(int pos, QString song) {
+	//qDebug() << song.toStdString().c_str();
+
+	/*QByteArray fileName = QFile::encodeName(song);
+	char const* encodedFileDir = fileName.constData();*/
+
+	//qDebug() << encodedFileDir;
+
 	queue.insert(pos, song);
+
+	qDebug() << queue;
 }
 
 int Player::getCSLengthInSeconds(){
@@ -120,11 +134,31 @@ int Player::getCSLengthInSeconds(){
 bool Player::loadSong(int pos){
 	b = pos;
 
-	source = BASS_StreamCreateFile(FALSE, queue[pos], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
+	QByteArray fileName = QFile::encodeName(queue[pos]); //same code from library
+	const char* encodedFileDir = fileName.constData();
 
-	QMetaObject::invokeMethod(root, "updateCSInfo", Q_ARG(QVariant, getCSLengthInSeconds()));
+	source = BASS_StreamCreateFile(FALSE, encodedFileDir, 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
 
-	return BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
+	bool addToMixer = BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
+
+	//GET CURRENT SONG METADATA
+	TagLib::FileRef file(encodedFileDir);
+
+	QImage CScoverArt; //preparing variable to recieve cover art
+
+	cover.getCover(file, CScoverArt, 200, 200);
+
+	QByteArray ba;
+	QBuffer buffer(&ba);
+	buffer.open(QIODevice::WriteOnly);
+	CScoverArt.save(&buffer, "JPG", 100);
+
+	QString uri = "data:image/jpg;base64," + QString::fromLatin1(ba.toBase64().data()); //converting to Base64 buffer
+
+	QMetaObject::invokeMethod(root, "updateCSInfo", Q_ARG(QVariant, getCSLengthInSeconds()), Q_ARG(QVariant, uri), Q_ARG(QVariant, file.tag()->artist().toCString()), Q_ARG(QVariant, file.tag()->album().toCString()), Q_ARG(QVariant, file.tag()->title().toCString())); //CALL QML->JS WITH THE DATA
+	
+	//PUT SONG IN MIXER
+	return addToMixer;
 }
 
 /*int Player::getPosition() { //in Q_INVOKABLE functions, always CONVERT QWORD TO INT so it's QML READABLE

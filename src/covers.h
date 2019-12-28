@@ -18,6 +18,8 @@
 #include <taglib/textidentificationframe.h>
 #include <taglib/tstring.h>
 #include <taglib/vorbisfile.h>
+#include <taglib/wavfile.h>
+#include <taglib/aifffile.h>
 
 #include <QObject>
 #include <QVariant>
@@ -29,8 +31,7 @@ class CCover : public QObject {
 	Q_OBJECT
 public:
 	explicit CCover(QObject* parent = 0);
-	bool getCover(const TagLib::FileRef& fr, QObject* target, int w, int h);
-	//bool drawCover(const TagLib::ByteVector& data, QImage img);
+	bool getCover(const TagLib::FileRef& fr, QImage& target, int w, int h);
 
 signals:
 
