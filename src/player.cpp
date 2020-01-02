@@ -155,6 +155,7 @@ bool Player::loadSong(int pos){
 
 	QString uri = "data:image/jpg;base64," + QString::fromLatin1(ba.toBase64().data()); //converting to Base64 buffer
 
+	//URGENT TODO! redo this using QString stuff (OMNI [symbols are] is broken)
 	QMetaObject::invokeMethod(root, "updateCSInfo", Q_ARG(QVariant, getCSLengthInSeconds()), Q_ARG(QVariant, uri), Q_ARG(QVariant, file.tag()->artist().toCString()), Q_ARG(QVariant, file.tag()->album().toCString()), Q_ARG(QVariant, file.tag()->title().toCString())); //CALL QML->JS WITH THE DATA
 	
 	//PUT SONG IN MIXER

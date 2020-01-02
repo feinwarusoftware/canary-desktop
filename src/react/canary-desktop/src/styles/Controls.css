@@ -1,0 +1,64 @@
+.playbar{
+    position: absolute;
+    bottom: 0;
+    width:100%;
+    height:82px;
+    background:#222222;
+    overflow:hidden;
+    display:flex;
+    align-items: center;
+    color:#fff;
+}
+
+.cover-container{
+    background:rgba(255,255,255,0.05);
+}
+
+.current-song-info img{
+    width:52px;
+}
+
+.current-song-info span{
+    display:inline-block;
+    margin-left:12px;
+}
+
+.current-song-info{
+    margin-left:16px;
+}
+
+.current-song-info .cover-container{
+    float:left;
+    width:52px;
+    height:52px;
+}
+
+.playbtn{
+    padding: 0;
+    border: none;
+    background: none;
+
+    font-size:42px;
+    color:#fff;
+
+    cursor:pointer;
+
+    opacity:.9;
+}
+
+.playbtn:hover{
+    opacity:1;
+}
+
+.playbtn:active{
+    opacity:.9;
+}
+
+
+.playbtn:focus { 
+    outline: none; 
+}
+
+.btns{
+    margin:0 auto;
+}
