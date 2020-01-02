@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 
     player.init(engine.rootObjects().first());
 
-	//player.insertToQueue(0, "01 - The Triumph.mp3");
+	player.insertToQueue(0, "01 - The Triumph.mp3");
     //player.insertToQueue(1, "Ok Goodnight - Think Again.flac");
 	//player.insertToQueue(0, "G:/Músicas/Avenged Sevenfold/City of Evil/04 - Bat Country.flac");
 

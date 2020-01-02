@@ -1,8 +1,5 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>./vue/index.html</file>
-        <file>./vue/app.js</file>
-        <file>./vue/components/AlbumPage.js</file>
     </qresource>
 </RCC>

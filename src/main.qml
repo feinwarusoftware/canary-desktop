@@ -8,33 +8,13 @@ import QtWebEngine 1.1
 Window {
     visible: true
     width: 1280
-    height: 480
+    height: 720
     title: qsTr("Canary Pre-Alpha")
-
-	/*TabView{
-		anchors.fill: parent
-		Tab{
-			title:"mainTab"
-			    WebEngineView {
-					anchors.fill: parent
-					url: "qrc:/index.html"
-
-					settings.localContentCanAccessRemoteUrls: true;
-					settings.localContentCanAccessFileUrls : true;
-
-					webChannel: channel
-				}
-		}
-
-		Tab{
-			title:"albumViewer"
-		}
-	
-	}*/
 
 	WebEngineView {
 		anchors.fill: parent
-		url: "qrc:/vue/index.html"
+		//url: "qrc:/vue/index.html"
+		url: "http://localhost:8080/"
 
 		settings.localContentCanAccessRemoteUrls: true;
 		settings.localContentCanAccessFileUrls : true;
@@ -61,12 +41,17 @@ Window {
         // ID, under which this object will be known at WebEngineView side
         WebChannel.id: "playerObject"
 
+		property bool isDraggingSeekbar;
+
 		signal appLoaded(string location);
         signal setCSInfo(int len, string coverData, string artist, string album, string songTitle);
         signal setCSPos(int pos);
 		signal libraryLoaded(string lib);
 
+		//TODO: transform to object
+
 		function loadApp(){
+			isDraggingSeekbar = false;
 			return playerObject.appLoaded(library.getAppLocation().toString());
 		}
 
@@ -127,6 +112,9 @@ Window {
 		repeat: true
 		triggeredOnStart: true //set to false(?)
         onTriggered: {
+			if(playerObject.isDraggingSeekbar){
+				return;
+			}
             currentPos = player.getPositionInSeconds()
             playerObject.setCSPos(currentPos);
 		}
