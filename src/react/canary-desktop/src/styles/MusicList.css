@@ -1,0 +1,31 @@
+.albumContainer{
+    width:180px;
+    height:250px;
+    display:inline-block;
+    overflow:hidden;
+    margin:12px;
+}
+
+.albumContainer img{
+    width:180px;
+    margin-bottom:6px;
+}
+
+.albumContainer span{
+    display:block;
+}
+
+.albumContainer .album{
+    font-size:14px;
+    font-weight:600;
+}
+
+.albumContainer .album:hover{
+    text-decoration:underline;
+}
+
+
+.albumContainer .artist{
+    font-size:12px;
+    opacity:.5;
+}

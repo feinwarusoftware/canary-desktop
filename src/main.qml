@@ -42,8 +42,12 @@ Window {
         WebChannel.id: "playerObject"
 
 		property bool isDraggingSeekbar;
+		property string location;
+		property string config;
+		property string userLibrary;
+		property string albums;
 
-		signal appLoaded(string location);
+		signal appLoaded();
         signal setCSInfo(int len, string coverData, string artist, string album, string songTitle);
         signal setCSPos(int pos);
 		signal libraryLoaded(string lib);
@@ -52,7 +56,11 @@ Window {
 
 		function loadApp(){
 			isDraggingSeekbar = false;
-			return playerObject.appLoaded(library.getAppLocation().toString());
+			location = library.getAppLocation().toString();
+			config = library.getData("config").toString();
+			userLibrary = library.getData("library").toString();
+			albums = library.getData("albums").toString();
+			return playerObject.appLoaded();
 		}
 
         function play() {
@@ -97,11 +105,7 @@ Window {
             }
 
             timer.restart()
-        } 
-
-		function getLibrary(){
-			return playerObject.libraryLoaded(library.getLibrary().toString());
-		}
+        }
     }
 
     Timer {
