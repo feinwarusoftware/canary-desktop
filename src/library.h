@@ -46,8 +46,9 @@ public:
 	explicit Library(QObject* parent = 0);
 	bool searchDir(QString dirPath);
 	bool createLib();
-	Q_INVOKABLE QString getLibrary();
+	Q_INVOKABLE QString getData(QString fileName);
 	Q_INVOKABLE QString getAppLocation();
+	bool createAlbumLib(QJsonArray data);
 
 private:
 	void loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj);

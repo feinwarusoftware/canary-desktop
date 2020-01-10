@@ -2,39 +2,77 @@ import React, { useState } from 'react';
 import '../styles/Controls.css'
 
 function Controls(props){
-    const [cpos, setpos] = useState(0);
+    const playerObject = props.playerObject;
 
-    props.playerObject.setCSPos.connect(function(pos) {
+    const [cpos, setpos] = useState(0);
+    const [csdata, setcsdata] = useState({
+        length:0
+    });
+
+    playerObject.setCSPos.connect(function(pos) {
         setpos(pos);
     });
+
+    function setVolume(e){
+        playerObject.changeVolume(e.target.value);
+    }    
+
+    function setCurrentSongData(len, coverData, artist, album, title) {
+        setcsdata({
+          cover: coverData,
+          length: len,
+          albumArtist: artist,
+          album: album,
+          title: title
+        });
+    }
+
+    function toMSS(seconds){
+        let minutes = Math.floor(seconds / 60);
+        let remainingSeconds = seconds - 60 * minutes;
+    
+        if(remainingSeconds <= 9){
+            remainingSeconds = "0" + remainingSeconds;
+        }
+    
+        return minutes + ":" + remainingSeconds;
+    }
+    
+    playerObject.setCSInfo.connect(setCurrentSongData);
 
     return(
         <div className="playbar">
             <div className="current-song-info">
                 <div className="cover-container">
-                    <img src={props.csdata.cover}/>
+                    <img src={csdata.cover}/>
                 </div>
-                <span>{props.csdata.title}</span>
-                <span>{props.csdata.albumArtist}</span>
+                <div className="nowplaying">
+                    <span>{csdata.title}</span>
+                    <span>{csdata.albumArtist}</span>
+                </div>
             </div>
 
             <div className="btns">
+                <button className="fbtn fas fa-step-backward" onClick={() => playerObject.jump("previous")}></button>
                 <button className={props.isPlaying ? 'playbtn fas fa-pause-circle' : 'playbtn fas fa-play-circle'} onClick={props.playCall}></button>
+                <button className="fbtn fas fa-step-forward" onClick={() => playerObject.jump("forward")}></button>
             </div>
 
-            <input type="range" min="0" value={cpos} 
-            onChange={(e)=>{setpos(e.target.value)}} 
-            max={props.csdata.length} 
-            onMouseDown={()=>{props.playerObject.isDraggingSeekbar = true}} 
+            <input className="progress-bar" type="range" min="0" value={cpos} 
+            onChange={(e)=>{setpos(e.target.value)}}
+            style={{backgroundSize:`${cpos * 100 / csdata.length}% 20px`}}
+            max={csdata.length} 
+            onMouseDown={()=>{playerObject.isDraggingSeekbar = true}} 
             onMouseUp={
                 (e)=>{
-                    props.playerObject.seek(e.target.value);
-                    props.playerObject.isDraggingSeekbar = false;
+                    playerObject.seek(e.target.value);
+                    playerObject.isDraggingSeekbar = false;
                 }
             }/> 
-            Length: {cpos}/{props.csdata.length}
-            Volume: <input type="range" defaultValue="1" min="0" max="1" step="any" onChange={(e)=>{props.setVolume(e)}}/>
-            <button onClick={props.stuff}>Magic Button</button>
+            <div className="time">
+                {toMSS(cpos)}/{toMSS(csdata.length)}
+            </div>
+            <i class="fas fa-volume-up"></i> <input className="vs" type="range" defaultValue="1" min="0" max="1" step="any" onChange={(e)=>{setVolume(e)}}/>
         </div>
     );
 }

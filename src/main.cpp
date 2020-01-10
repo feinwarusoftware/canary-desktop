@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     Player player;
 	Library library;
 
-    QScopedPointer<Player> p(new Player);
+	QScopedPointer<Player> p(new Player);
     engine.rootContext()->setContextProperty("player", p.data());
 
 	QScopedPointer<Library> l(new Library);
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 
     player.init(engine.rootObjects().first());
 
-	player.insertToQueue(0, "01 - The Triumph.mp3");
+	player.insertToQueue(0, "Ok Goodnight - Think Again.flac");
     //player.insertToQueue(1, "Ok Goodnight - Think Again.flac");
 	//player.insertToQueue(0, "G:/Músicas/Avenged Sevenfold/City of Evil/04 - Bat Country.flac");
 

@@ -4,7 +4,7 @@
     width:100%;
     height:82px;
     background:#222222;
-    overflow:hidden;
+    padding-top:20px;
     display:flex;
     align-items: center;
     color:#fff;
@@ -19,7 +19,7 @@
 }
 
 .current-song-info span{
-    display:inline-block;
+    display:block;
     margin-left:12px;
 }
 
@@ -33,24 +33,32 @@
     height:52px;
 }
 
-.playbtn{
+.fbtn{
+    opacity:.7;
+    font-size:18px;
+}
+
+.btns button{
     padding: 0;
     border: none;
     background: none;
-
-    font-size:42px;
     color:#fff;
-
     cursor:pointer;
-
-    opacity:.9;
 }
 
-.playbtn:hover{
+.playbtn{
+    font-size:42px;
+
+    opacity:.9;
+
+    margin:0 12px;
+}
+
+.btns button:hover{
     opacity:1;
 }
 
-.playbtn:active{
+.btns button:active{
     opacity:.9;
 }
 
@@ -60,5 +68,44 @@
 }
 
 .btns{
+    display:flex;
     margin:0 auto;
+}
+
+.nowplaying{
+    float:left;
+}
+
+.progress-bar{
+    position:absolute;
+    top:0;
+    height:20px;
+    flex-shrink: 0;
+    width:100%;
+    -webkit-appearance: none;
+    background-color:#212121;
+    background-image: linear-gradient(to right, #ffa800, #f24b70);
+    background-repeat:no-repeat;
+    background-size:0 0;
+    /*background-size:90% 20px;*/
+}
+
+.progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 1px;
+    width: 1px;
+    opacity:0;
+}
+
+.progress-bar:focus {
+    outline: none; /* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
+}
+
+.time{
+    margin-right:20px;
+}
+
+.vs{
+    margin-right:20px;
+    margin-left:8px;
 }

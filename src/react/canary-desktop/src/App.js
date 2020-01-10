@@ -1,30 +1,29 @@
 import React, { useState } from 'react';
+import {
+  BrowserRouter as Router,
+  Route,
+  Link
+} from "react-router-dom";
+import CacheRoute, { CacheSwitch } from 'react-router-cache-route'
+
 import Controls from './components/Controls'
+import MusicList from './components/MusicList'
+import AlbumPage from './components/AlbumPage'
 import './styles/normalize.css'
 import './styles/App.css'
 
 function App(props) {
-  //var playerObject;
- // const [playerObject, setPlayerObject] = useState(0);
-  const [CSdata, setCSdata] = useState({
-    cover:'',
-    length:0,
-    title:'-',
-    albumArtist:'-',
-    album:'-'
-  });
-
-  const [cpos, setpos] = useState(0);
+  const location = props.location;
 
   const [isPlaying, setPlaying] = useState(false);
 
-  //const [isDragging, setDragging] = useState(false);
-
-  //var isDragging = false;
+  /*const [appData, setAppData] = useState({
+    location:''
+  });*/
 
   const playerObject = props.playerObject;
 
-  function bola(len, coverData, artist, album, title) {
+  /*function setCurrentSongData(len, coverData, artist, album, title) {
     setCSdata({
       cover: coverData,
       length: len,
@@ -34,15 +33,7 @@ function App(props) {
     });
   }
 
-  playerObject.setCSInfo.connect(bola);
-
-  /*playerObject.setCSPos.connect(function(pos) {
-    console.log(isDragging);
-    if(isDragging === false){
-      console.log('to rodando e foda-se')
-      setpos(pos);
-    }
-  });*/
+  playerObject.setCSInfo.connect(setCurrentSongData);*/
 
   function playCall(){
     if(isPlaying){
@@ -53,22 +44,27 @@ function App(props) {
         setPlaying(true)
         playerObject.play()
     }
-  }
-
-  function setVolume(e){
-    playerObject.changeVolume(e.target.value);
-  }
+  }    
 
   return (
     <div className="App">
-      <div className="bar-placeholder"></div>
-      <Controls isPlaying={isPlaying} playCall={playCall} setVolume={setVolume} forward={() => console.log('forward')} back={() => console.log('back')} csdata={{
-        cover:CSdata.cover,
-        length:CSdata.length,
-        title:CSdata.title,
-        albumArtist:CSdata.albumArtist,
-        album:CSdata.album
-      }} playerObject={playerObject} stuff={() => {return playerObject.loadSong(0)}}>
+      <Router>
+        <div className="menu-bar">
+          <Link to="/usermusic">
+            <i className="fas fa-music"></i>
+          </Link>
+        </div>
+
+        <div className="pages">
+            <CacheSwitch>
+              <CacheRoute exact path="/usermusic" render={(props) => <MusicList type="album" data={playerObject.albums} loc={location} {...props} />} />
+              <Route exact path="/album/:id" render={(props) => <AlbumPage playerObject={playerObject} playCall={playCall} />} />
+              {/*<Route exact path="/album/:id" render={(props) => <Queue playCall={playCall} playerObject={playerObject} />} />*/}
+            </CacheSwitch>
+        </div>
+      </Router>
+
+      <Controls playerObject={playerObject} isPlaying={isPlaying} playCall={playCall} stuff={() => {return playerObject.loadSong(0)}}>
       </Controls>
     </div>
   );

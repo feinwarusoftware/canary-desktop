@@ -23,7 +23,7 @@ bool Library::searchDir(QString dirPath) {
 		}
 	}
 
-	QFile jsonFile("fileList.json");
+	QFile jsonFile("./userdata/fileList.json");
 	bool createJSON = jsonFile.open(QIODevice::ReadWrite);
 	QJsonDocument jsonDoc(jsonArr);
 	jsonFile.write(jsonDoc.toJson());
@@ -47,8 +47,83 @@ void Library::loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj) {
 	}
 }
 
+bool Library::createAlbumLib(QJsonArray data) { //TODO: mix this with the album function?
+	QJsonArray loadedAlbums;
+	QJsonObject albumObject;
+
+	foreach(const QJsonValue & songVal, data) {
+		QJsonObject song = songVal.toObject();
+
+		if (loadedAlbums.contains(song.value("albumid"))) { //song from an album that's already registered
+			QString id = QString::number(song.value("albumid").toInt());
+			QJsonObject tempObj = albumObject.value(id).toObject();
+			QJsonArray tracks = tempObj.value("tracks").toArray();
+
+			song.remove("artist");
+			song.remove("date");
+			song.remove("album");
+
+			tracks.append(song);
+
+			tempObj["tracks"] = tracks;
+
+			albumObject.remove(id);
+			albumObject.insert(id, tempObj);
+
+			continue;
+		}
+
+		loadedAlbums.append(song.value("albumid"));
+
+		QJsonObject album;
+
+		if (song.value("album").isArray() && !song.value("album").toArray().isEmpty()) {
+			album.insert("name", song.value("album").toArray()[0].toString());
+		}
+		else {
+			album.insert("name", "");
+		}
+
+		if (song.value("artist").isArray() && !song.value("artist").toArray().isEmpty()) {
+			album.insert("artist", song.value("artist").toArray()[0].toString());
+		}
+		else {
+			album.insert("artist", "");
+		}
+
+		if (song.value("date").isArray() && !song.value("date").toArray().isEmpty()) {
+			album.insert("date", song.value("date").toArray()[0].toString());
+		}
+		else {
+			album.insert("date", "");
+		}
+
+		QJsonArray tracks;
+
+		song.remove("artist");
+		song.remove("date");
+		song.remove("album");
+
+		tracks.append(song);
+
+		album.insert("tracks", tracks);
+
+		albumObject.insert(QString::number(song.value("albumid").toInt()), album);
+	}
+
+	qDebug() << albumObject;
+
+	QJsonDocument albumDoc(albumObject);
+
+	QFile albumFile("./userdata/albums.json");
+	bool createAlbumFile = albumFile.open(QIODevice::ReadWrite);
+	albumFile.write(albumDoc.toJson());
+
+	return createAlbumFile;
+}
+
 bool Library::createLib() {
-	QFile fileListJson("fileList.json");
+	QFile fileListJson("./userdata/fileList.json");
 	bool readJSON = fileListJson.open(QIODevice::ReadOnly/* | QIODevice::Text*/);
 	QJsonDocument list = QJsonDocument::fromJson(fileListJson.readAll());
 	QJsonArray listArray = list.array();
@@ -187,7 +262,7 @@ bool Library::createLib() {
 
 	QJsonDocument libDoc(libArray);
 
-	QFile libFile("library.json");
+	QFile libFile("./userdata/library.json");
 	bool createLib = libFile.open(QIODevice::ReadWrite);
 	libFile.write(libDoc.toJson());
 	//libFile.close();
@@ -195,8 +270,10 @@ bool Library::createLib() {
 	return createLib;
 }
 
-QString Library::getLibrary() {
-	QFile libJSON("library.json");
+//ADITIONAL DATA FUNCTIONS
+QString Library::getData(QString fileName) {
+	QString fileDir = "./userdata/" + fileName + ".json";
+	QFile libJSON(fileDir);
 	bool readJSON = libJSON.open(QIODevice::ReadOnly | QIODevice::Text);
 
 	if (!readJSON) {
