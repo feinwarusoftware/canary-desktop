@@ -1,0 +1,6 @@
+.sidebar{
+    width:10%;
+    height:calc(100vh - 102px);
+    background:darkcyan;
+    float:left;
+}

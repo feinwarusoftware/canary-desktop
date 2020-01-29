@@ -1,0 +1,10 @@
+.App{
+  color:#fff;
+  position:relative;
+}
+
+.page{
+  width:90%;
+  height:calc(100vh - 102px);
+  overflow-y:scroll;
+}
