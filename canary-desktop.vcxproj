@@ -11,13 +11,21 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <QtRcc Include="qml.qrc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="main.qml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\covers.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\player.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="src\covers.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="src\player.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F21E7093-EDD9-4FC4-A7A2-26453D3FEF7D}</ProjectGuid>
@@ -81,12 +89,19 @@
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <AdditionalIncludeDirectories>D:\Downloads\bass24\c;D:\Downloads\bassmix24\c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>bass.lib;bassmix.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Downloads\bass24\c\x64;D:\Downloads\bassmix24\c\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -1,0 +1,111 @@
+.playbar{
+    width:100%;
+    height:82px;
+    background:#222222;
+    padding-top:20px;
+    position:absolute;
+    bottom:-102px;
+    color:#fff;
+    overflow:hidden;
+}
+
+.cover-container{
+    background:rgba(255,255,255,0.05);
+}
+
+.current-song-info img{
+    width:52px;
+}
+
+.current-song-info span{
+    display:block;
+    margin-left:12px;
+}
+
+.current-song-info{
+    margin-left:16px;
+}
+
+.current-song-info .cover-container{
+    float:left;
+    width:52px;
+    height:52px;
+}
+
+.fbtn{
+    opacity:.7;
+    font-size:18px;
+}
+
+/*.btns button{
+    padding: 0;
+    border: none;
+    background: none;
+    color:#fff;
+    cursor:pointer;
+}*/
+
+.playbtn{
+    font-size:42px;
+
+    opacity:.9;
+
+    margin:0 12px;
+}
+
+.btns button:hover{
+    opacity:1;
+}
+
+.btns button:active{
+    opacity:.9;
+}
+
+
+.playbtn:focus { 
+    outline: none; 
+}
+
+.btns{
+    display:flex;
+    margin:0 auto;
+}
+
+.nowplaying{
+    float:left;
+}
+
+.progress-bar{
+    position:absolute;
+    top:0;
+    left:0;
+    height:20px;
+    flex-shrink: 0;
+    width:100%;
+    -webkit-appearance: none;
+    background-color:#212121;
+    background-image: linear-gradient(to right, #ffa800, #f24b70);
+    background-repeat:no-repeat;
+    background-size:0 0;
+    /*background-size:90% 20px;*/
+}
+
+.progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 1px;
+    width: 1px;
+    opacity:0;
+}
+
+.progress-bar:focus {
+    outline: none; /* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
+}
+
+.time{
+    margin-right:20px;
+}
+
+.vs{
+    margin-right:20px;
+    margin-left:8px;
+}
