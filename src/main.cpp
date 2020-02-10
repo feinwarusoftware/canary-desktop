@@ -26,7 +26,9 @@ int main(int argc, char* argv[])
         if you find a workaround using signals, feel free to make a pull request!
     */
 
-    player.insertToQueue(0, "testsongs/(01) [Akira Yamaoka] One More Soul To The Call.flac");
+    /*player.insertToQueue(0, "01. Six Degrees of Inner Turbulence_ I. Overture.flac");
+    player.insertToQueue(1, "02. Six Degrees of Inner Turbulence_ II. About to Crash.flac");
+    player.loadSong(0);*/
 
     return app.exec();
 }

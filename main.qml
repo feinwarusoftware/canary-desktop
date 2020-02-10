@@ -47,6 +47,14 @@ Window {
                 player.jump(1)
             }
         }
+
+        function loadSong(pos){
+            player.loadSong(pos);
+        }
+
+        function insertToQueue(pos, dir){
+            player.insertToQueue(pos, dir);
+        }
     }
 
     QtObject {
