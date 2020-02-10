@@ -7,7 +7,9 @@
 #include "covers.h"
 
 #include <QObject>
-#include <QVector>
+
+#include <list>
+
 #include <QVariant>
 #include <QString>
 #include <QFile>

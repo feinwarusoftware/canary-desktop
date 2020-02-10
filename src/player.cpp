@@ -25,7 +25,8 @@ bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actu
 
 float volume = 1;
 
-QVector<QString> queue;
+QVector<QByteArray> queue;
+//std::vector<char const*>::iterator queueIterator;
 
 QWORD syncpos;
 
@@ -45,27 +46,9 @@ void CALLBACK TimerSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 		Q_ARG(QVariant, player.getPositionInSeconds())
 	);
 
-	qDebug() << player.getPositionInSeconds();	
-
 	syncpos += BASS_ChannelSeconds2Bytes(channel, 0.5);
 	timeSync = BASS_ChannelSetSync(channel, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
 }
-
-void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
-{
-	Player player;
-
-	if (b + 1 > queue.size() - 1) {
-		return queue.clear();
-	};
-
-	b = b + 1;
-
-	player.loadSong(b);
-
-	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
-}
-
 bool Player::loadPlugins() {
 	/*
 		WMA playback not supported - would be Windows exclusive and it's not widely used anyways - I, personally, never used it in years
@@ -108,8 +91,25 @@ bool Player::loadPlugins() {
 	}
 }
 
+void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
+{
+	Player player;
+
+	if (b + 1 > queue.size() - 1) {
+		return queue.clear();
+	};
+
+	b = b + 1;
+	
+	source = BASS_StreamCreateFile(FALSE, queue[b], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
+	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
+	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); // reset the mixer
+}
+
 void Player::init(QObject* r) {
 	root = r;
+
+	//queueIterator = queue.begin();
 
 	BASS_SetConfig(BASS_CONFIG_DEV_DEFAULT, 1); //change output device on the fly
 
@@ -126,19 +126,22 @@ void Player::init(QObject* r) {
 
 	BASS_GetInfo(&currentDeviceInfo);
 	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, currentDeviceInfo.speakers, BASS_MIXER_END);
-	sync = BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0);
+	BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0); // set sync for end
+	/*source = BASS_StreamCreateFile(FALSE, "01. Six Degrees of Inner Turbulence_ I. Overture.flac", 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
+	BASS_ChannelSetPosition(source, BASS_ChannelSeconds2Bytes(source, 406), BASS_POS_BYTE);
+	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE); // plug it in (and auto-free it when it ends)*/
 }
 
 //void Player::insertToQueue(int pos, char const* song) {
 void Player::insertToQueue(int pos, QString song) {
-	//qDebug() << song.toStdString().c_str();
+	qDebug() << queue;
+	QByteArray fileName = QFile::encodeName(song);
+	char const* encodedFileDir = fileName.constData();
 
-	/*QByteArray fileName = QFile::encodeName(song);
-	char const* encodedFileDir = fileName.constData();*/
+	qDebug() << encodedFileDir;
+	qDebug() << pos;
 
-	//qDebug() << encodedFileDir;
-
-	queue.insert(pos, song);
+	queue.insert(queue.begin() + pos, fileName);
 
 	qDebug() << queue;
 }
@@ -150,18 +153,15 @@ int Player::getCSLengthInSeconds() {
 bool Player::loadSong(int pos) {
 	b = pos;
 
-	QByteArray fileName = QFile::encodeName(queue[pos]); //same code from library
-	const char* encodedFileDir = fileName.constData();
+	qDebug() << queue[pos].toStdString().c_str();
 
-	source = BASS_StreamCreateFile(FALSE, encodedFileDir, 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
-
-	bool addToMixer = BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
-
-	syncpos = BASS_ChannelSeconds2Bytes(mixer, 0.5);
-	timeSync = BASS_ChannelSetSync(mixer, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
+	source = BASS_StreamCreateFile(FALSE, queue[pos].toStdString().c_str(), 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
+	//BASS_ChannelSetPosition(source, BASS_ChannelSeconds2Bytes(source, 390), BASS_POS_BYTE);
+	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE); // plug it in (and auto-free it when it ends)
+	BASS_ChannelPlay(mixer, FALSE);
 
 	//GET CURRENT SONG METADATA
-	TagLib::FileRef file(encodedFileDir);
+	/*TagLib::FileRef file(encodedFileDir);
 
 	QImage CScoverArt; //preparing variable to recieve cover art
 
@@ -179,17 +179,17 @@ bool Player::loadSong(int pos) {
 	QString title = QString::fromWCharArray(file.tag()->title().toWString().c_str());
 
 	QMetaObject::invokeMethod(
-		root, 
-		"changeNowPlaying", 
+		root,
+		"changeNowPlaying",
 		Q_ARG(QVariant, getCSLengthInSeconds()),
-		Q_ARG(QVariant, uri), 
-		Q_ARG(QVariant, artist), 
+		Q_ARG(QVariant, uri),
+		Q_ARG(QVariant, artist),
 		Q_ARG(QVariant, album),
 		Q_ARG(QVariant, title)
-	);
+	);*/
 
 	//put song in mixer bool
-	return addToMixer;
+	return true;
 }
 
 //changed from int to double for precision
