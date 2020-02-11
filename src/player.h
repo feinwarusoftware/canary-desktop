@@ -15,6 +15,8 @@
 #include <QFile>
 #include <QFileInfo>
 
+#include <QVariantMap>
+
 #include <QDebug>
 
 class Player : public QObject {
@@ -32,7 +34,6 @@ public:
     Q_INVOKABLE bool jump(bool direction);
 
 private:
-    int getCSLengthInSeconds();
     bool loadPlugins();
 };
 
