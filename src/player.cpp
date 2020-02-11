@@ -25,7 +25,12 @@ bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actu
 
 float volume = 1;
 
-QVector<QByteArray> queue;
+struct songStruct {
+	QByteArray dir;
+	QMap<QString, QVariant> data;
+};
+
+QVector<songStruct> queue;
 //std::vector<char const*>::iterator queueIterator;
 
 QWORD syncpos;
@@ -101,9 +106,13 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 
 	b = b + 1;
 	
-	source = BASS_StreamCreateFile(FALSE, queue[b], 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
+	source = BASS_StreamCreateFile(FALSE, queue[b].dir.toStdString().c_str(), 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
 	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
 	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); // reset the mixer
+
+	QMetaObject::invokeMethod(root, "changeNowPlaying",
+		Q_ARG(QVariant, QVariantMap(queue[b].data))
+	);
 }
 
 void Player::init(QObject* r) {
@@ -127,45 +136,16 @@ void Player::init(QObject* r) {
 	BASS_GetInfo(&currentDeviceInfo);
 	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, currentDeviceInfo.speakers, BASS_MIXER_END);
 	BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0); // set sync for end
-	/*source = BASS_StreamCreateFile(FALSE, "01. Six Degrees of Inner Turbulence_ I. Overture.flac", 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
-	BASS_ChannelSetPosition(source, BASS_ChannelSeconds2Bytes(source, 406), BASS_POS_BYTE);
-	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE); // plug it in (and auto-free it when it ends)*/
 }
 
-//void Player::insertToQueue(int pos, char const* song) {
 void Player::insertToQueue(int pos, QString song) {
-	qDebug() << queue;
 	QByteArray fileName = QFile::encodeName(song);
-	char const* encodedFileDir = fileName.constData();
 
-	qDebug() << encodedFileDir;
-	qDebug() << pos;
-
-	queue.insert(queue.begin() + pos, fileName);
-
-	qDebug() << queue;
-}
-
-int Player::getCSLengthInSeconds() {
-	return BASS_ChannelBytes2Seconds(source, BASS_ChannelGetLength(source, BASS_POS_BYTE));
-}
-
-bool Player::loadSong(int pos) {
-	b = pos;
-
-	qDebug() << queue[pos].toStdString().c_str();
-
-	source = BASS_StreamCreateFile(FALSE, queue[pos].toStdString().c_str(), 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
-	//BASS_ChannelSetPosition(source, BASS_ChannelSeconds2Bytes(source, 390), BASS_POS_BYTE);
-	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE); // plug it in (and auto-free it when it ends)
-	BASS_ChannelPlay(mixer, FALSE);
-
-	//GET CURRENT SONG METADATA
-	/*TagLib::FileRef file(encodedFileDir);
+	TagLib::FileRef file(fileName.toStdString().c_str());
 
 	QImage CScoverArt; //preparing variable to recieve cover art
 
-	cover.getCover(file, CScoverArt, 200, 200, QFileInfo(encodedFileDir).canonicalPath());
+	cover.getCover(file, CScoverArt, 200, 200, QFileInfo(fileName.toStdString().c_str()).canonicalPath());
 
 	QByteArray ba;
 	QBuffer buffer(&ba);
@@ -178,15 +158,36 @@ bool Player::loadSong(int pos) {
 	QString album = QString::fromWCharArray(file.tag()->album().toWString().c_str());
 	QString title = QString::fromWCharArray(file.tag()->title().toWString().c_str());
 
-	QMetaObject::invokeMethod(
-		root,
-		"changeNowPlaying",
-		Q_ARG(QVariant, getCSLengthInSeconds()),
-		Q_ARG(QVariant, uri),
-		Q_ARG(QVariant, artist),
-		Q_ARG(QVariant, album),
-		Q_ARG(QVariant, title)
-	);*/
+	int length = file.audioProperties()->length();
+
+	songStruct songObj;
+
+	songObj.dir = fileName;
+
+	songObj.data.insert("title", title);
+	songObj.data.insert("artist", artist);
+	songObj.data.insert("album", album);
+	songObj.data.insert("coverUri", uri);
+	songObj.data.insert("length", length);
+
+	queue.insert(pos, songObj);
+}
+
+bool Player::loadSong(int pos) {
+	b = pos;
+
+	qDebug() << queue[pos].dir.toStdString().c_str();
+
+	source = BASS_StreamCreateFile(FALSE, 
+		queue[pos].dir.toStdString().c_str(),  //there seems to be no issues in using a pointer here - the value of "source" can change while not affecting playback
+		0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
+	BASS_ChannelSetPosition(source, BASS_ChannelSeconds2Bytes(source, 390), BASS_POS_BYTE);
+	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
+	BASS_ChannelPlay(mixer, FALSE);
+
+	QMetaObject::invokeMethod(root, "changeNowPlaying",
+		Q_ARG(QVariant, QVariantMap(queue[pos].data))
+	);
 
 	//put song in mixer bool
 	return true;
@@ -262,3 +263,7 @@ bool Player::jump(bool direction) {
 
 	return false;
 }
+
+/*
+TODO: undo wrapper functions
+*/

@@ -5,8 +5,9 @@ import QtWebChannel 1.0
 
 Window {
 
-	function changeNowPlaying(length, coverData, artist, album, title){
-		playerObject.setNowPlayingInfo(length, coverData, artist, album, title);
+	function changeNowPlaying(data){
+        console.log(data.title);
+		playerObject.setNowPlayingInfo(data.length, data.coverUri, data.artist, data.album, data.title);
 	}
 
     function changeTime(time){
@@ -26,13 +27,14 @@ Window {
 
     QtObject {
         id: playerObject
+        objectName:"playerObject"
         WebChannel.id: "playerObject"
 
         property var playerClass;
         property bool isDraggingSeekbar;
 
         signal setNowPlayingPos(double pos);
-        signal setNowPlayingInfo(int len, string coverData, string artist, string album, string songTitle);
+        signal setNowPlayingInfo(string len, string coverData, string artist, string album, string songTitle);
 
         function jump(direction){
             if(direction == "previous"){
