@@ -6,7 +6,7 @@ function Controls(props){
 
     const [cpos, setpos] = useState(0);
     const [nowPlayingData, setNowPlayingData] = useState({
-        length:0
+        len:0
     });
 
     playerObject.setNowPlayingPos.connect(function(pos) {
@@ -15,16 +15,6 @@ function Controls(props){
 
     function setVolume(e){
         playerObject.playerClass.changeVolume(e.target.value);
-    }    
-
-    function setCurrentSongData(len, coverData, artist, album, title) {
-        setNowPlayingData({
-          cover: coverData,
-          length: len,
-          albumArtist: artist,
-          album: album,
-          title: title
-        });
     }
 
     function toMSS(time){
@@ -39,18 +29,18 @@ function Controls(props){
         return minutes + ":" + remainingSeconds;
     }
     
-    playerObject.setNowPlayingInfo.connect(setCurrentSongData);
+    playerObject.setNowPlayingInfo.connect(setNowPlayingData);
 
     return(
         <div className="playbar">
             <button onClick={props.stuff}>Load Test Song</button>
             <div className="current-song-info">
                 <div className="cover-container">
-                    <img alt="Current Song Album Cover" src={nowPlayingData.cover} />
+                    <img alt="Current Song Album Cover" src={nowPlayingData.coverUri} />
                 </div>
                 <div className="nowplaying">
                     <span>{nowPlayingData.title}</span>
-                    <span>{nowPlayingData.albumArtist}</span>
+                    <span>{nowPlayingData.artist}</span>
                 </div>
             </div>
 
@@ -62,8 +52,8 @@ function Controls(props){
 
             <input className="progress-bar" type="range" min="0" value={cpos} 
             onChange={(e)=>{setpos(e.target.value)}}
-            style={{backgroundSize:`${cpos * 100 / nowPlayingData.length}% 20px`}}
-            max={nowPlayingData.length} 
+            style={{backgroundSize:`${cpos * 100 / nowPlayingData.len}% 20px`}}
+            max={nowPlayingData.len} 
             onMouseDown={()=>{playerObject.isDraggingSeekbar = true}} 
             onMouseUp={
                 (e)=>{
@@ -72,7 +62,7 @@ function Controls(props){
                 }
             }/> 
             <div className="time">
-                {toMSS(cpos)}/{toMSS(nowPlayingData.length)}
+                {toMSS(cpos)}/{toMSS(nowPlayingData.len)}
             </div>
             <i className="fas fa-volume-up"></i> <input className="vs" type="range" defaultValue="1" min="0" max="1" step="any" onChange={(e)=>{setVolume(e)}}/>
         </div>

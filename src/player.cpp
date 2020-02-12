@@ -110,6 +110,9 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
 	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); // reset the mixer
 
+	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
+	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
+
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
 		Q_ARG(QVariant, QVariantMap(queue[b].data))
 	);
@@ -158,7 +161,7 @@ void Player::insertToQueue(int pos, QString song) {
 	QString album = QString::fromWCharArray(file.tag()->album().toWString().c_str());
 	QString title = QString::fromWCharArray(file.tag()->title().toWString().c_str());
 
-	int length = file.audioProperties()->length();
+	QString length = QString::number(file.audioProperties()->length());
 
 	songStruct songObj;
 
@@ -168,7 +171,7 @@ void Player::insertToQueue(int pos, QString song) {
 	songObj.data.insert("artist", artist);
 	songObj.data.insert("album", album);
 	songObj.data.insert("coverUri", uri);
-	songObj.data.insert("length", length);
+	songObj.data.insert("len", length);
 
 	queue.insert(pos, songObj);
 }
@@ -181,16 +184,20 @@ bool Player::loadSong(int pos) {
 	source = BASS_StreamCreateFile(FALSE, 
 		queue[pos].dir.toStdString().c_str(),  //there seems to be no issues in using a pointer here - the value of "source" can change while not affecting playback
 		0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
-	BASS_ChannelSetPosition(source, BASS_ChannelSeconds2Bytes(source, 390), BASS_POS_BYTE);
-	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
-	BASS_ChannelPlay(mixer, FALSE);
+	bool addToMixer = BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
+
+	/*syncpos = BASS_ChannelSeconds2Bytes(mixer, 0.5);
+	timeSync = BASS_ChannelSetSync(mixer, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);*/
 
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
 		Q_ARG(QVariant, QVariantMap(queue[pos].data))
 	);
 
+	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
+	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
+
 	//put song in mixer bool
-	return true;
+	return addToMixer;
 }
 
 //changed from int to double for precision
@@ -218,7 +225,7 @@ bool Player::pause() {
 		BASS_ATTRIB_VOL,
 		0,
 		250
-	);
+	);	
 	return BASS_ChannelPause(mixer);
 }
 
@@ -237,6 +244,9 @@ bool Player::seek(double to) {
 
 	syncpos = BASS_ChannelSeconds2Bytes(mixer, 0.5);
 	timeSync = BASS_ChannelSetSync(mixer, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
+
+	/*syncpos = BASS_ChannelSeconds2Bytes(mixer, 0.5);
+	timeSync = BASS_ChannelSetSync(mixer, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);*/
 
 	return fadeOut && seekToPosition && resetMixer && fadeIn;
 }

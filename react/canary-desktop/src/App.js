@@ -42,6 +42,7 @@ function App(props) {
       <Controls playerObject={playerObject} isPlaying={isPlaying} playCall={playCall} stuff={() => {
         playerObject.insertToQueue(0, "G:/Músicas/Dream Theater/Six Degrees Of Inner Turbulence/CD2/01. Six Degrees of Inner Turbulence_ I. Overture.flac"); 
         playerObject.insertToQueue(1, "G:/Músicas/Dream Theater/Six Degrees Of Inner Turbulence/CD2/02. Six Degrees of Inner Turbulence_ II. About to Crash.flac")
+        playerObject.insertToQueue(2, "G:/Músicas/Dream Theater/Six Degrees Of Inner Turbulence/CD2/03. Six Degrees of Inner Turbulence_ III. War Inside My Head.flac")
         playerObject.loadSong(0);
         //playerObject.playerClass.seek(406);
         }}></Controls>
