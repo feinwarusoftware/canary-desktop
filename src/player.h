@@ -15,6 +15,7 @@
 #include <QFile>
 #include <QFileInfo>
 
+#include <QMap>
 #include <QVariantMap>
 
 #include <QDebug>
@@ -32,6 +33,7 @@ public:
     Q_INVOKABLE bool changeVolume(float v);
     Q_INVOKABLE bool seek(double to);
     Q_INVOKABLE bool jump(bool direction);
+    void clearQueue();
 
 private:
     bool loadPlugins();

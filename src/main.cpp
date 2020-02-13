@@ -4,6 +4,8 @@
 #include <QtWebEngineCore>
 #include <QWebEngineView>
 
+#include <QObject>
+
 #include "player.h"
 
 int main(int argc, char* argv[])
@@ -18,7 +20,13 @@ int main(int argc, char* argv[])
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml"))); //loads the QML interface
 
+    /*QObject::connect(player, SIGNAL(qmlSignal(QVariant)), Player, SLOT(cppSlot(QVariant)));
+    connect(player, &Player::loadSong, someFunction);*/
+
+    QObject* root = engine.rootObjects().first();
+
     player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
+
     /*
         acknowledgment: I know passing the QML root as a pointer so the class can deal with it is a terrible workaround - I should be using pointers. thing is, they don't work properly
         because I'm obligated to deal with scoped functions with BASS, or static functions
