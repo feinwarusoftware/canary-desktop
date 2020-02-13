@@ -6,6 +6,7 @@ import QtWebChannel 1.0
 Window {
 
 	function changeNowPlaying(data){
+        //(maybe) TODO: pass as property, use signal to force re-render
 		playerObject.setNowPlayingInfo(data);
 	}
 

@@ -79,6 +79,16 @@
     position:absolute;
     top:0;
     left:0;
+    width:100%;
+    height:20px;
+    flex-shrink: 0;
+    width:100%;
+}
+
+/*.progress-bar{
+    position:absolute;
+    top:0;
+    left:0;
     height:20px;
     flex-shrink: 0;
     width:100%;
@@ -87,7 +97,6 @@
     background-image: linear-gradient(to right, #ffa800, #f24b70);
     background-repeat:no-repeat;
     background-size:0 0;
-    /*background-size:90% 20px;*/
 }
 
 .progress-bar::-webkit-slider-thumb {
@@ -98,8 +107,8 @@
 }
 
 .progress-bar:focus {
-    outline: none; /* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
-}
+    outline: none;
+}*/
 
 .time{
     margin-right:20px;

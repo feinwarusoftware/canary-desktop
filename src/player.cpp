@@ -98,10 +98,11 @@ bool Player::loadPlugins() {
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
-	Player player;
-
 	if (b + 1 > queue.size() - 1) {
-		return queue.clear();
+		qDebug() << "cabou negada";
+		Player player;
+		player.clearQueue();
+		return;
 	};
 
 	b = b + 1;
@@ -176,28 +177,39 @@ void Player::insertToQueue(int pos, QString song) {
 	queue.insert(pos, songObj);
 }
 
+/*
+	source = BASS_StreamCreateFile(FALSE, queue[b].dir.toStdString().c_str(), 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
+	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
+	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); // reset the mixer
+
+	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
+	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
+
+	QMetaObject::invokeMethod(root, "changeNowPlaying",
+		Q_ARG(QVariant, QVariantMap(queue[b].data))
+	);
+*/
+
 bool Player::loadSong(int pos) {
 	b = pos;
 
 	qDebug() << queue[pos].dir.toStdString().c_str();
 
 	source = BASS_StreamCreateFile(FALSE, 
-		queue[pos].dir.toStdString().c_str(),  //there seems to be no issues in using a pointer here - the value of "source" can change while not affecting playback
+		queue[pos].dir.toStdString().c_str(),  //there seems to be no issues in using a pointer here - the value of "source" can change and it doesn't affect playback
 		0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
 	bool addToMixer = BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
+	bool resetMixer = BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 
-	/*syncpos = BASS_ChannelSeconds2Bytes(mixer, 0.5);
-	timeSync = BASS_ChannelSetSync(mixer, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);*/
+	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
+	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
 
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
 		Q_ARG(QVariant, QVariantMap(queue[pos].data))
 	);
 
-	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
-	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
-
 	//put song in mixer bool
-	return addToMixer;
+	return addToMixer && resetMixer;
 }
 
 //changed from int to double for precision
@@ -274,6 +286,6 @@ bool Player::jump(bool direction) {
 	return false;
 }
 
-/*
-TODO: undo wrapper functions
-*/
+void Player::clearQueue() {
+	queue.clear();
+}
