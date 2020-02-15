@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   BrowserRouter as Router,
   Route,
@@ -13,19 +13,17 @@ import Queue from './components/Queue'
 import './styles/App.css';
 
 function App(props) {
-  const [isPlaying, setPlaying] = useState(false);
   const playerObject = props.playerObject;
-  const time = props.time;
 
   function playCall(){
-    if(isPlaying){
-        setPlaying(false)
+    playerObject.playerClass.playing().then((isPlaying)=>{
+      if(isPlaying){
         playerObject.playerClass.pause()
-    }
-    else{
-        setPlaying(true)
+      }
+      else{
         playerObject.playerClass.play()
-    }
+      }
+    })
   }
 
   return (
@@ -40,13 +38,9 @@ function App(props) {
           </Switch>
         </div>
       </Router>
-      <Controls playerObject={playerObject} isPlaying={isPlaying} playCall={playCall} stuff={() => {
-        playerObject.insertToQueue(0, "G:/Músicas/Dream Theater/Six Degrees Of Inner Turbulence/CD2/01. Six Degrees of Inner Turbulence_ I. Overture.flac"); 
-        playerObject.insertToQueue(1, "G:/Músicas/Dream Theater/Six Degrees Of Inner Turbulence/CD2/02. Six Degrees of Inner Turbulence_ II. About to Crash.flac")
-        playerObject.insertToQueue(2, "G:/Músicas/Dream Theater/Six Degrees Of Inner Turbulence/CD2/03. Six Degrees of Inner Turbulence_ III. War Inside My Head.flac")
+      <Controls playerObject={playerObject} playCall={playCall} stuff={() => {
+        playerObject.insertToQueue(0, "G:/Músicas/Fallout 76_ Take Me Home, Country Roads/01 Fallout 76_ Take Me Home, Country.m4a"); 
         playerObject.loadSong(0);
-        console.log(playerObject.currentTime);
-        //playerObject.playerClass.seek(406);
         }}></Controls>
     </div>
   );

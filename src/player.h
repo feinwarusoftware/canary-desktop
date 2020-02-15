@@ -34,6 +34,7 @@ public:
     Q_INVOKABLE bool seek(double to);
     Q_INVOKABLE bool jump(bool direction);
     void clearQueue();
+    Q_INVOKABLE bool playing();
 
 private:
     bool loadPlugins();
