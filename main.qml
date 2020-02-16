@@ -40,6 +40,7 @@ Window {
 
         signal setNowPlayingPos(double pos);
         signal setNowPlayingInfo(variant data);
+        signal queueUpdate();
         signal clear();
 
         function jump(direction){
@@ -62,6 +63,7 @@ Window {
 
         function insertToQueue(pos, dir){
             player.insertToQueue(pos, dir);
+            playerObject.queueUpdate();
         }
     }
 

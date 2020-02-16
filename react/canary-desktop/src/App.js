@@ -34,7 +34,7 @@ function App(props) {
           <Switch>
             <Route exact path="/usermusic" render={(props) => <MusicList />} />
             <Route exact path="/album/:id" render={(props) => <AlbumPage />} />
-            <Route exact path="/queue" render={(props) => <Queue />} />
+            <Route exact path="/queue" render={(props) => <Queue playerObject={playerObject} {...props} />} />
           </Switch>
         </div>
       </Router>

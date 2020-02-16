@@ -294,10 +294,22 @@ bool Player::jump(bool direction) {
 void Player::clearQueue() {
 	isPlaying = FALSE;
 	queue.clear();
+	queue.squeeze(); //frees allocated memory places - maybe not necessary
 	QMetaObject::invokeMethod(root, "clear");
 	qDebug() << volume;
 }
 
 bool Player::playing() {
 	return isPlaying;
+}
+
+QVariantList Player::getQueue() {
+	QVariantList q;
+
+	for (songStruct& s : queue) {
+		qDebug() << s.data["title"];
+		q.append(QVariantMap(s.data));
+	}
+
+	return q;
 }
