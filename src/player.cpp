@@ -98,6 +98,7 @@ bool Player::loadPlugins() {
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
+	queue[b].data["isPlayingNow"] = false;
 	if (b + 1 > queue.size() - 1) {
 		qDebug() << "cabou negada";
 		Player player;
@@ -117,6 +118,8 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
 		Q_ARG(QVariant, QVariantMap(queue[b].data))
 	);
+
+	queue[b].data["isPlayingNow"] = true;
 }
 
 void Player::init(QObject* r) {
@@ -138,7 +141,7 @@ void Player::init(QObject* r) {
 	);
 
 	BASS_GetInfo(&currentDeviceInfo);
-	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, currentDeviceInfo.speakers, BASS_MIXER_END);
+	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, currentDeviceInfo.speakers, BASS_MIXER_END | BASS_MIXER_RESUME);
 	BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0); // set sync for end
 }
 
@@ -173,6 +176,7 @@ void Player::insertToQueue(int pos, QString song) {
 	songObj.data.insert("album", album);
 	songObj.data.insert("coverUri", uri);
 	songObj.data.insert("len", length);
+	songObj.data.insert("isPlayingNow", false);
 
 	queue.insert(pos, songObj);
 }
@@ -208,12 +212,18 @@ bool Player::loadSong(int pos) {
 		Q_ARG(QVariant, QVariantMap(queue[pos].data))
 	);
 
+	queue[pos].data["isPlayingNow"] = true;
+
+	if (!isPlaying) {
+		play();
+	}
+
 	//put song in mixer bool
 	return addToMixer && resetMixer;
 }
 
 //changed from int to double for precision
-/*int*/ double Player::getPositionInSeconds() { //in Q_INVOKABLE functions, always CONVERT QWORD TO INT so it's QML READABLE
+double Player::getPositionInSeconds() {
 	return BASS_ChannelBytes2Seconds(source, BASS_ChannelGetPosition(source, BASS_POS_BYTE));
 }
 
@@ -279,7 +289,8 @@ bool Player::jump(bool direction) {
 			return BASS_Mixer_ChannelRemove(source) /*like trick with the "b - 2" thing - this makes the EndSync callback load  the "next of the previous of the previous" => -2 + 1 = -1*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 		}
 		else {
-			return pause(); //TEMPORARY - WILL STOP QUEUE IN THE FUTURE (just like mbee)
+			clearQueue();
+			return true;
 		}
 	}
 
@@ -287,5 +298,24 @@ bool Player::jump(bool direction) {
 }
 
 void Player::clearQueue() {
+	isPlaying = FALSE;
 	queue.clear();
+	queue.squeeze(); //frees allocated memory places - maybe not necessary
+	QMetaObject::invokeMethod(root, "clear");
+	qDebug() << volume;
+}
+
+bool Player::playing() {
+	return isPlaying;
+}
+
+QVariantList Player::getQueue() {
+	QVariantList q;
+
+	for (songStruct& s : queue) {
+		qDebug() << s.data["title"];
+		q.append(QVariantMap(s.data));
+	}
+
+	return q;
 }

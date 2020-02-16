@@ -6,14 +6,20 @@ import QtWebChannel 1.0
 Window {
 
 	function changeNowPlaying(data){
-        //(maybe) TODO: pass as property, use signal to force re-render
+        //(maybe) TODO: pass as property, use signal to force re-render; property variant nowPlaying, etc. - not necessary now, may be
 		playerObject.setNowPlayingInfo(data);
+        playerObject.queueUpdate(); //maybe TODO: change this to not update queue twice when loading fresh songs
 	}
 
     function changeTime(time){
         if(!playerObject.isDraggingSeekbar){
             playerObject.setNowPlayingPos(time);
         }
+    }
+
+    function clear(){
+        playerObject.setNowPlayingPos(0);
+        playerObject.clear();
     }
 
     width: 1024
@@ -35,6 +41,8 @@ Window {
 
         signal setNowPlayingPos(double pos);
         signal setNowPlayingInfo(variant data);
+        signal queueUpdate();
+        signal clear();
 
         function jump(direction){
             if(direction == "previous"){
@@ -56,6 +64,7 @@ Window {
 
         function insertToQueue(pos, dir){
             player.insertToQueue(pos, dir);
+            playerObject.queueUpdate();
         }
     }
 

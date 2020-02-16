@@ -8,8 +8,6 @@
 
 #include <QObject>
 
-#include <list>
-
 #include <QVariant>
 #include <QString>
 #include <QFile>
@@ -17,6 +15,9 @@
 
 #include <QMap>
 #include <QVariantMap>
+
+#include <QVector>
+#include <QList>
 
 #include <QDebug>
 
@@ -34,6 +35,8 @@ public:
     Q_INVOKABLE bool seek(double to);
     Q_INVOKABLE bool jump(bool direction);
     void clearQueue();
+    Q_INVOKABLE bool playing();
+    Q_INVOKABLE QVariantList getQueue();
 
 private:
     bool loadPlugins();

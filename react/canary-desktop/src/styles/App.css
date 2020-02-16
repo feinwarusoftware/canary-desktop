@@ -1,6 +1,7 @@
 .App{
   color:#fff;
   position:relative;
+  user-select: none;
 }
 
 .page{
