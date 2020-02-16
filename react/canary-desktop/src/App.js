@@ -39,7 +39,8 @@ function App(props) {
         </div>
       </Router>
       <Controls playerObject={playerObject} playCall={playCall} stuff={() => {
-        playerObject.insertToQueue(0, "G:/Músicas/Fallout 76_ Take Me Home, Country Roads/01 Fallout 76_ Take Me Home, Country.m4a"); 
+        playerObject.insertToQueue(0, "G:/Músicas/Dream Theater/Falling Into Infinity/06. Hell’s Kitchen.flac"); 
+        playerObject.insertToQueue(1, "G:/Músicas/Dream Theater/Falling Into Infinity/07. Lines in the Sand.flac");
         playerObject.loadSong(0);
         }}></Controls>
     </div>

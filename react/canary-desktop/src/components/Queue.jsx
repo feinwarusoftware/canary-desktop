@@ -15,7 +15,7 @@ function Queue(props){
         return() =>{
             playerObject.queueUpdate.disconnect(getQueueFunc);
         }
-    }, []);
+    });
 
     getQueueFunc();
 

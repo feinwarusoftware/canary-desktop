@@ -5,10 +5,12 @@ import QtWebChannel 1.0
 
 Window {
 
-	function changeNowPlaying(data){
+	function changeNowPlaying(data, isLoadedSong){
         //(maybe) TODO: pass as property, use signal to force re-render; property variant nowPlaying, etc. - not necessary now, may be
 		playerObject.setNowPlayingInfo(data);
-        playerObject.queueUpdate(); //maybe TODO: change this to not update queue twice when loading fresh songs
+        if(!isLoadedSong){
+            playerObject.queueUpdate();
+        }
 	}
 
     function changeTime(time){
