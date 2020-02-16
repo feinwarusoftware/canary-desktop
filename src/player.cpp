@@ -99,6 +99,7 @@ bool Player::loadPlugins() {
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
 	queue[b].data["isPlayingNow"] = false;
+
 	if (b + 1 > queue.size() - 1) {
 		qDebug() << "cabou negada";
 		Player player;
@@ -115,11 +116,12 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
 	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
 
-	QMetaObject::invokeMethod(root, "changeNowPlaying",
-		Q_ARG(QVariant, QVariantMap(queue[b].data))
-	);
-
 	queue[b].data["isPlayingNow"] = true;
+
+	QMetaObject::invokeMethod(root, "changeNowPlaying",
+		Q_ARG(QVariant, QVariantMap(queue[b].data)),
+		Q_ARG(QVariant, false)
+	);
 }
 
 void Player::init(QObject* r) {
@@ -181,19 +183,6 @@ void Player::insertToQueue(int pos, QString song) {
 	queue.insert(pos, songObj);
 }
 
-/*
-	source = BASS_StreamCreateFile(FALSE, queue[b].dir.toStdString().c_str(), 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
-	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
-	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); // reset the mixer
-
-	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
-	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
-
-	QMetaObject::invokeMethod(root, "changeNowPlaying",
-		Q_ARG(QVariant, QVariantMap(queue[b].data))
-	);
-*/
-
 bool Player::loadSong(int pos) {
 	b = pos;
 
@@ -208,11 +197,12 @@ bool Player::loadSong(int pos) {
 	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
 	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
 
-	QMetaObject::invokeMethod(root, "changeNowPlaying",
-		Q_ARG(QVariant, QVariantMap(queue[pos].data))
-	);
-
 	queue[pos].data["isPlayingNow"] = true;
+
+	QMetaObject::invokeMethod(root, "changeNowPlaying",
+		Q_ARG(QVariant, QVariantMap(queue[pos].data)),
+		Q_ARG(QVariant, true)
+	);
 
 	if (!isPlaying) {
 		play();
