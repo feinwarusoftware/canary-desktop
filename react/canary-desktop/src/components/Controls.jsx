@@ -12,7 +12,7 @@ function Controls(props){
     const [nowPlayingSongPos, setPos] = useState(0);
 
     useEffect(() => {
-        playerObject.setNowPlayingInfo.connect(setNowPlayingData);
+        playerObject.setNowPlayingInfo.connect(setNowPlayingData); //TODO: fix weird seekbar when song transition thorugh here
 
         playerObject.clear.connect(function(){
             setNowPlayingData({
@@ -34,7 +34,7 @@ function Controls(props){
             playerObject.clear.disconnect();
             playerObject.setNowPlayingPos.disconnect();
         }
-    }, []);
+    },  [playerObject.setNowPlayingInfo, playerObject.clear, playerObject.setNowPlayingPos]);
 
     return(
         <div className="playbar">
@@ -54,8 +54,8 @@ function Controls(props){
                 <button onClick={props.playCall}>Play/Pause</button>
                 <button onClick={() => playerObject.jump("forward")}>Forward</button>
                 <button onClick={()=>{
-                    playerObject.insertToQueue(0, "G:/Músicas/Ayreon/Elected/01. Elected.flac");
-                    playerObject.loadSong(0);
+                    playerObject.insertToQueue(2, "G:/Músicas/Ok Goodnight/Limbo/Ok Goodnight - Limbo - 02 Think Again.flac");
+                    playerObject.insertToQueue(3, "G:/Músicas/Ok Goodnight/Limbo/Ok Goodnight - Limbo - 03 Free Fall.flac");
                 }}>Load more</button>
             </div>
 

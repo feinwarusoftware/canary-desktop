@@ -1,27 +1,48 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 function Queue(props){
     const playerObject = props.playerObject;
+    const [queue, setQueue] = useState(false);
+    const [isUpdate, setIsUpdate] = useState(false);
 
-    function getQueueFunc(){
-        return playerObject.playerClass.getQueue().then((queue)=>{
-            console.log(queue);
-        });
+    console.log(isUpdate);
+
+
+    function printQueue(data){
+        const qS = data.map((song, index)=>
+            <li key={index}>{song.title} {song.isPlayingNow ? "Now Playing" : ""}</li>
+        );
+
+        setQueue(qS);
     }
 
+  function updateData(data){
+    if(!isUpdate){
+        setIsUpdate(true);
+    }
+    console.log(data);
+
+    printQueue(data);
+  }
+    
     useEffect(() => {
-        playerObject.queueUpdate.connect(getQueueFunc);
+        playerObject.queueUpdate.connect(updateData);
+
+        if(!isUpdate){
+            playerObject.playerClass.getQueue().then((data)=>{
+                console.log(data);
+                printQueue(data);
+            });
+        }
 
         return() =>{
-            playerObject.queueUpdate.disconnect(getQueueFunc);
+            playerObject.queueUpdate.disconnect(updateData);
         }
-    });
-
-    getQueueFunc();
+    }, [isUpdate]);
 
     return(
         <div>
-            oi eu sou o queue
+            {queue}
         </div>
     );
 }
