@@ -41,7 +41,7 @@ function App(props) {
       <Controls playerObject={playerObject} playCall={playCall} stuff={() => {
         playerObject.insertToQueue(0, "G:/Músicas/Dream Theater/Falling Into Infinity/06. Hell’s Kitchen.flac"); 
         playerObject.insertToQueue(1, "G:/Músicas/Dream Theater/Falling Into Infinity/07. Lines in the Sand.flac");
-        playerObject.loadSong(0);
+        playerObject.playerClass.loadSong(0);
         }}></Controls>
     </div>
   );

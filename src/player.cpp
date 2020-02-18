@@ -23,6 +23,8 @@ int b; //variable used as position controller
 bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actually is (that is controlled by BASS itself)
 				//e.g.: when you're dragging the playback bar, BASS is NOT playing (it's paused), but isPlaying = TRUE, so when you release the button it continues playing as intended
 
+bool lastCallWasPrev = false;
+
 float volume = 1;
 
 struct songStruct {
@@ -98,7 +100,12 @@ bool Player::loadPlugins() {
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
-	queue[b].data["isPlayingNow"] = false;
+	if (!lastCallWasPrev) { // "previous" call
+		queue[b].data["isPlayingNow"] = false;
+	}
+	else {
+		lastCallWasPrev = false;
+	}
 
 	if (b + 1 > queue.size() - 1) {
 		qDebug() << "cabou negada";
@@ -119,8 +126,7 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	queue[b].data["isPlayingNow"] = true;
 
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
-		Q_ARG(QVariant, QVariantMap(queue[b].data)),
-		Q_ARG(QVariant, false)
+		Q_ARG(QVariant, QVariantMap(queue[b].data))
 	);
 }
 
@@ -197,11 +203,10 @@ bool Player::loadSong(int pos) {
 	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
 	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
 
-	queue[pos].data["isPlayingNow"] = true;
+	queue[b].data["isPlayingNow"] = true;
 
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
-		Q_ARG(QVariant, QVariantMap(queue[pos].data)),
-		Q_ARG(QVariant, true)
+		Q_ARG(QVariant, QVariantMap(queue[pos].data))
 	);
 
 	if (!isPlaying) {
@@ -274,13 +279,17 @@ bool Player::jump(bool direction) {
 	}
 	else {
 		if (b > 0) {
+			queue[b].data["isPlayingNow"] = false;
+			lastCallWasPrev = true;
 			b = b - 2;
 
 			return BASS_Mixer_ChannelRemove(source) /*like trick with the "b - 2" thing - this makes the EndSync callback load  the "next of the previous of the previous" => -2 + 1 = -1*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 		}
 		else {
 			clearQueue();
-			return true;
+			bool remove = BASS_Mixer_ChannelRemove(source);
+			bool reset = BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+			return remove && reset;
 		}
 	}
 
@@ -290,7 +299,7 @@ bool Player::jump(bool direction) {
 void Player::clearQueue() {
 	isPlaying = FALSE;
 	queue.clear();
-	queue.squeeze(); //frees allocated memory places - maybe not necessary
+	//queue.squeeze(); //frees allocated memory places - maybe not necessary
 	QMetaObject::invokeMethod(root, "clear");
 	qDebug() << volume;
 }
@@ -303,7 +312,6 @@ QVariantList Player::getQueue() {
 	QVariantList q;
 
 	for (songStruct& s : queue) {
-		qDebug() << s.data["title"];
 		q.append(QVariantMap(s.data));
 	}
 

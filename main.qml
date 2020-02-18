@@ -5,12 +5,11 @@ import QtWebChannel 1.0
 
 Window {
 
-	function changeNowPlaying(data, isLoadedSong){
+	function changeNowPlaying(data){
         //(maybe) TODO: pass as property, use signal to force re-render; property variant nowPlaying, etc. - not necessary now, may be
+        playerObject.setNowPlayingPos(0);
 		playerObject.setNowPlayingInfo(data);
-        if(!isLoadedSong){
-            playerObject.queueUpdate();
-        }
+        playerObject.queueUpdate(player.getQueue());
 	}
 
     function changeTime(time){
@@ -22,6 +21,7 @@ Window {
     function clear(){
         playerObject.setNowPlayingPos(0);
         playerObject.clear();
+        playerObject.queueUpdate(player.getQueue());
     }
 
     width: 1024
@@ -43,7 +43,7 @@ Window {
 
         signal setNowPlayingPos(double pos);
         signal setNowPlayingInfo(variant data);
-        signal queueUpdate();
+        signal queueUpdate(variant data);
         signal clear();
 
         function jump(direction){
@@ -60,13 +60,9 @@ Window {
             }
         }
 
-        function loadSong(pos){
-            player.loadSong(pos);
-        }
-
         function insertToQueue(pos, dir){
             player.insertToQueue(pos, dir);
-            playerObject.queueUpdate();
+            playerObject.queueUpdate(player.getQueue());
         }
     }
 
