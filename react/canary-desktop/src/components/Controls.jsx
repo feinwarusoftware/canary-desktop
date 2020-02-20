@@ -54,8 +54,8 @@ function Controls(props){
                 <button onClick={props.playCall}>Play/Pause</button>
                 <button onClick={() => playerObject.jump("forward")}>Forward</button>
                 <button onClick={()=>{
-                    playerObject.insertToQueue(2, "G:/Músicas/Ok Goodnight/Limbo/Ok Goodnight - Limbo - 02 Think Again.flac");
-                    playerObject.insertToQueue(3, "G:/Músicas/Ok Goodnight/Limbo/Ok Goodnight - Limbo - 03 Free Fall.flac");
+                    playerObject.insertToQueue(1, "G:/Músicas/Rainbow/Rising/05. Stargazer.flac");
+                    //playerObject.insertToQueue(3, "G:/Músicas/Ok Goodnight/Limbo/Ok Goodnight - Limbo - 03 Free Fall.flac");
                 }}>Load more</button>
             </div>
 

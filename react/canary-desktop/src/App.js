@@ -12,9 +12,7 @@ import AlbumPage from './components/AlbumPage'
 import Queue from './components/Queue'
 import './styles/App.css';
 
-function App(props) {
-  const playerObject = props.playerObject;
-
+function App({playerObject, libObject}) {
   function playCall(){
     playerObject.playerClass.playing().then((isPlaying)=>{
       if(isPlaying){
@@ -32,15 +30,15 @@ function App(props) {
         <Sidebar></Sidebar>
         <div className="page">
           <Switch>
-            <Route exact path="/usermusic" render={(props) => <MusicList />} />
+            <Route exact path="/usermusic" render={(props) => <MusicList libObject={libObject} />} />
             <Route exact path="/album/:id" render={(props) => <AlbumPage />} />
             <Route exact path="/queue" render={(props) => <Queue playerObject={playerObject} {...props} />} />
           </Switch>
         </div>
       </Router>
       <Controls playerObject={playerObject} playCall={playCall} stuff={() => {
-        playerObject.insertToQueue(0, "G:/Músicas/Dream Theater/Falling Into Infinity/06. Hell’s Kitchen.flac"); 
-        playerObject.insertToQueue(1, "G:/Músicas/Dream Theater/Falling Into Infinity/07. Lines in the Sand.flac");
+        playerObject.insertToQueue(0, "G:/Músicas/Toehider/Covers/16032018 - cover 4 GRAVEMAKERS AND GUNSLINGERS.wav"); 
+        //playerObject.insertToQueue(1, "G:/Músicas/Dream Theater/Falling Into Infinity/07. Lines in the Sand.flac");
         playerObject.playerClass.loadSong(0);
         }}></Controls>
     </div>

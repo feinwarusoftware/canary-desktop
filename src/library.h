@@ -37,20 +37,16 @@
 
 #include "covers.h"
 
-
 class Library : public QObject {
 	Q_OBJECT
 public:
 	explicit Library(QObject* parent = 0);
 	bool searchDir(QStringList dirPath); //searches the directory for compatible music files, indexes all of them in a json - main index file, this is what is reviewed when songs are added/removed
 	bool createLib();
+	Q_INVOKABLE QVariantList loadLib();
 
 private:
 	void loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj);
-
-signals:
-
-public slots:
 };
 
 #endif //LIBRARY_H

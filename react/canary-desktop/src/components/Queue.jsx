@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 
-function Queue(props) {
-    const playerObject = props.playerObject;
+function Queue({playerObject}) {
     const [queue, setQueue] = useState(false);
     const [isUpdate, setIsUpdate] = useState(false);
 
@@ -21,12 +20,12 @@ function Queue(props) {
         printQueue(data);
     }
 
+    /*eslint-disable */
     useEffect(() => {
         playerObject.queueUpdate.connect(updateData);
 
         if (!isUpdate) {
             playerObject.playerClass.getQueue().then((data) => {
-                console.log(data);
                 printQueue(data);
             });
         }
@@ -35,6 +34,7 @@ function Queue(props) {
             playerObject.queueUpdate.disconnect(updateData);
         }
     }, [isUpdate]);
+    /*eslint-enable */
 
     return (
         <div>

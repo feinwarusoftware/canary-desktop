@@ -17,11 +17,22 @@ int main(int argc, char* argv[])
     QQmlApplicationEngine engine;
 
     Player player;
-    engine.rootContext()->setContextProperty("player", &player); //exposes the C++ class to QML
+    Library library;
+    engine.rootContext()->setContextProperty("player", &player); //exposes the C++ classes to QML
+    engine.rootContext()->setContextProperty("library", &library);
+
+    //QObject::connect(player, &Player::loadSong, someFunction);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml"))); //loads the QML interface
 
-    QObject* root = engine.rootObjects().first();
+    /*QObject* root = engine.rootObjects().first();
+
+    QObject::connect(
+        &library, &Library::libLoaded,
+        [=](QVariantList& l) {
+            qDebug() << l;
+        }
+    );*/
 
     player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
 
