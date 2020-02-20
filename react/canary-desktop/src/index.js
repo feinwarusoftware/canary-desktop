@@ -10,10 +10,10 @@ new QWebChannel(qt.webChannelTransport, function (channel) {
             channel.objects.playerObject.playerClass.seek(document.querySelector('.progress-bar').value); //provisory, little messy solution - can be redone by a more experienced frontend programmer later
             channel.objects.playerObject.isDraggingSeekbar = false;
         }
-    })
+    });
 
     channel.objects.appObject.appLoaded.connect(function() {
-        ReactDOM.render(<App playerObject={channel.objects.playerObject} />, document.getElementById('root')); //run React
+        ReactDOM.render(<App playerObject={channel.objects.playerObject} libObject={channel.objects.libObject} />, document.getElementById('root')); //run React
     });
 
     channel.objects.appObject.loadApp(); //calls the app to load

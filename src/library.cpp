@@ -178,13 +178,12 @@ bool Library::createLib() {
 	QJsonDocument libDoc(libArray);
 
 	QFile libFile("./userdata/library.json");
-	bool createLib = libFile.open(QIODevice::ReadWrite);
+	bool cLib = libFile.open(QIODevice::ReadWrite);
 	libFile.write(libDoc.toJson());
 	//libFile.close();
 
-	return createLib;
+	return cLib;
 }
-
 
 void Library::loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj) {
 	for (auto it = sMap.begin(); it != sMap.end(); it++) {
@@ -201,6 +200,15 @@ void Library::loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj) {
 	}
 }
 
+QVariantList Library::loadLib() {
+	QFile libJSON("./userdata/library.json");
+	bool readJSON = libJSON.open(QIODevice::ReadOnly | QIODevice::Text);
+	QByteArray data = libJSON.readAll();
+	QJsonDocument jdoc(QJsonDocument::fromJson(data));
+	QVariantList listToPass = jdoc.array().toVariantList();
+
+	return listToPass;
+}
 
 /*
 getData
