@@ -7,6 +7,7 @@
 #include <QObject>
 
 #include "player.h"
+#include "library.h"
 
 int main(int argc, char* argv[])
 {
@@ -19,9 +20,6 @@ int main(int argc, char* argv[])
     engine.rootContext()->setContextProperty("player", &player); //exposes the C++ class to QML
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml"))); //loads the QML interface
-
-    /*QObject::connect(player, SIGNAL(qmlSignal(QVariant)), Player, SLOT(cppSlot(QVariant)));
-    connect(player, &Player::loadSong, someFunction);*/
 
     QObject* root = engine.rootObjects().first();
 
