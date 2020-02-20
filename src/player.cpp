@@ -160,7 +160,7 @@ void Player::insertToQueue(int pos, QString song) {
 
 	QImage CScoverArt; //preparing variable to recieve cover art
 
-	cover.getCover(file, CScoverArt, 200, 200, QFileInfo(fileName.toStdString().c_str()).canonicalPath());
+	cover.getCover(file, CScoverArt, 200, 200, QFileInfo(song).canonicalPath());
 
 	QByteArray ba;
 	QBuffer buffer(&ba);
