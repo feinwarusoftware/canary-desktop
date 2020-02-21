@@ -68,7 +68,10 @@ function MusicList({libObject}) {
                 });
 
                 const a = Object.keys(albums).map(key => 
-                    <li key={key}>{albums[key].artist} - {albums[key].name}</li>
+                    <div key={key}>
+                        <span>{albums[key].artist} - {albums[key].name}</span>
+                        <img src={process.env.PUBLIC_URL + `/cache/covers/${key}.jpg`} />
+                    </div>
                 );
 
                 setData(a);
@@ -77,7 +80,7 @@ function MusicList({libObject}) {
     }, [data]);
 
     return (
-      <div className="music-list">
+      <div className="music-list albumlist">
           {data}
       </div>
     );
