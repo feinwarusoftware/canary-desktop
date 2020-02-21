@@ -205,6 +205,7 @@ QVariantList Library::loadLib() {
 	bool readJSON = libJSON.open(QIODevice::ReadOnly | QIODevice::Text);
 	QByteArray data = libJSON.readAll();
 	QJsonDocument jdoc(QJsonDocument::fromJson(data));
+
 	QVariantList listToPass = jdoc.array().toVariantList();
 
 	return listToPass;
