@@ -12,7 +12,7 @@ import AlbumPage from './components/AlbumPage'
 import Queue from './components/Queue'
 import './styles/App.css';
 
-function App({playerObject, libObject}) {
+function App({playerObject, libObject, location}) {
   function playCall(){
     playerObject.playerClass.playing().then((isPlaying)=>{
       if(isPlaying){
@@ -31,7 +31,7 @@ function App({playerObject, libObject}) {
         <div className="page">
           <Switch>
             <Route exact path="/usermusic" render={(props) => <MusicList libObject={libObject} />} />
-            <Route exact path="/album/:id" render={(props) => <AlbumPage />} />
+            <Route exact path="/album/:id" render={(props) => <AlbumPage playerObject={playerObject} location={location} {...props}/> }  />
             <Route exact path="/queue" render={(props) => <Queue playerObject={playerObject} {...props} />} />
           </Switch>
         </div>

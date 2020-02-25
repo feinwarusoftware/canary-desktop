@@ -29,7 +29,8 @@ float volume = 1;
 
 struct songStruct {
 	QByteArray dir;
-	QMap<QString, QVariant> data;
+	QJSValue data;
+	bool isPlayingNow;
 };
 
 QVector<songStruct> queue;
@@ -101,7 +102,7 @@ bool Player::loadPlugins() {
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
 	if (!lastCallWasPrev) { // "previous" call
-		queue[b].data["isPlayingNow"] = false;
+		queue[b].isPlayingNow = false;
 	}
 	else {
 		lastCallWasPrev = false;
@@ -115,7 +116,7 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	};
 
 	b = b + 1;
-	
+
 	source = BASS_StreamCreateFile(FALSE, queue[b].dir.toStdString().c_str(), 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
 	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
 	BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE); // reset the mixer
@@ -123,10 +124,10 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
 	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
 
-	queue[b].data["isPlayingNow"] = true;
+	queue[b].isPlayingNow = true;
 
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
-		Q_ARG(QVariant, QVariantMap(queue[b].data))
+		Q_ARG(QVariant, queue[b].data.toVariant())
 	);
 }
 
@@ -153,38 +154,14 @@ void Player::init(QObject* r) {
 	BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0); // set sync for end
 }
 
-void Player::insertToQueue(int pos, QString song) {
-	QByteArray fileName = QFile::encodeName(song);
-
-	TagLib::FileRef file(fileName.toStdString().c_str());
-
-	QImage CScoverArt; //preparing variable to recieve cover art
-
-	cover.getCover(file, CScoverArt, 200, 200, QFileInfo(song).canonicalPath());
-
-	QByteArray ba;
-	QBuffer buffer(&ba);
-	buffer.open(QIODevice::WriteOnly);
-	CScoverArt.save(&buffer, "JPG", 100);
-
-	QString uri = "data:image/jpg;base64," + QString::fromLatin1(ba.toBase64().data()); //converting to Base64 buffer
-
-	QString artist = QString::fromWCharArray(file.tag()->artist().toWString().c_str());
-	QString album = QString::fromWCharArray(file.tag()->album().toWString().c_str());
-	QString title = QString::fromWCharArray(file.tag()->title().toWString().c_str());
-
-	QString length = QString::number(file.audioProperties()->length());
+void Player::insertToQueue(int pos, QJSValue data){
+	QByteArray fileName = QFile::encodeName(data.property("dir").toString()); //pre-converts the directory to prevent playback rampin from taking too long
 
 	songStruct songObj;
 
 	songObj.dir = fileName;
-
-	songObj.data.insert("title", title);
-	songObj.data.insert("artist", artist);
-	songObj.data.insert("album", album);
-	songObj.data.insert("coverUri", uri);
-	songObj.data.insert("len", length);
-	songObj.data.insert("isPlayingNow", false);
+	songObj.data = data;
+	songObj.isPlayingNow = false;
 
 	queue.insert(pos, songObj);
 }
@@ -192,9 +169,9 @@ void Player::insertToQueue(int pos, QString song) {
 bool Player::loadSong(int pos) {
 	b = pos;
 
-	qDebug() << queue[pos].dir.toStdString().c_str();
+	qDebug() << queue[pos].dir;
 
-	source = BASS_StreamCreateFile(FALSE, 
+	source = BASS_StreamCreateFile(FALSE,
 		queue[pos].dir.toStdString().c_str(),  //there seems to be no issues in using a pointer here - the value of "source" can change and it doesn't affect playback
 		0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
 	bool addToMixer = BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE);
@@ -203,10 +180,10 @@ bool Player::loadSong(int pos) {
 	syncpos = BASS_ChannelSeconds2Bytes(source, 0.5);
 	timeSync = BASS_ChannelSetSync(source, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
 
-	queue[b].data["isPlayingNow"] = true;
+	queue[b].isPlayingNow = true;
 
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
-		Q_ARG(QVariant, QVariantMap(queue[pos].data))
+		Q_ARG(QVariant, queue[pos].data.toVariant())
 	);
 
 	if (!isPlaying) {
@@ -242,7 +219,7 @@ bool Player::pause() {
 		BASS_ATTRIB_VOL,
 		0,
 		250
-	);	
+	);
 	return BASS_ChannelPause(mixer);
 }
 
@@ -268,6 +245,7 @@ bool Player::seek(double to) {
 	return fadeOut && seekToPosition && resetMixer && fadeIn;
 }
 
+
 bool Player::jump(bool direction) {
 	//if (!active()) {
 	if (!isPlaying) {
@@ -279,7 +257,7 @@ bool Player::jump(bool direction) {
 	}
 	else {
 		if (b > 0) {
-			queue[b].data["isPlayingNow"] = false;
+			queue[b].isPlayingNow = false;
 			lastCallWasPrev = true;
 			b = b - 2;
 
@@ -297,6 +275,9 @@ bool Player::jump(bool direction) {
 }
 
 void Player::clearQueue() {
+	/*if (queue.size() == 0) {
+		return;
+	}*/
 	isPlaying = FALSE;
 	queue.clear();
 	//queue.squeeze(); //frees allocated memory places - maybe not necessary
@@ -308,12 +289,25 @@ bool Player::playing() {
 	return isPlaying;
 }
 
+bool Player::resetQueue() {
+	clearQueue();
+	bool remove = BASS_Mixer_ChannelRemove(source);
+	bool reset = BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+	return remove && reset;
+}
+
 QVariantList Player::getQueue() {
 	QVariantList q;
 
 	for (songStruct& s : queue) {
-		q.append(QVariantMap(s.data));
+		QVariantMap d = s.data.toVariant().toMap();
+		d.insert("isPlayingNow", s.isPlayingNow);
+		q.append(d);
 	}
 
 	return q;
 }
+
+/*
+TODO NOTE: Werid crash when loading test song, jumping (playback finished) the loading an album. I should take a closer look.
+*/

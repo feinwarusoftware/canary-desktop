@@ -19,6 +19,8 @@
 #include <QVector>
 #include <QList>
 
+#include <QJSValue>
+
 #include <QDebug>
 
 class Player : public QObject {
@@ -26,7 +28,7 @@ class Player : public QObject {
 public:
     explicit Player(QObject* parent = 0);
     void init(QObject* r);
-    Q_INVOKABLE void insertToQueue(int pos, QString song);
+    Q_INVOKABLE void insertToQueue(int pos, QJSValue data);
     Q_INVOKABLE bool loadSong(int pos);
     Q_INVOKABLE double getPositionInSeconds();
     Q_INVOKABLE bool play();
@@ -34,9 +36,10 @@ public:
     Q_INVOKABLE bool changeVolume(float v);
     Q_INVOKABLE bool seek(double to);
     Q_INVOKABLE bool jump(bool direction);
-    void clearQueue();
+    Q_INVOKABLE void clearQueue();
     Q_INVOKABLE bool playing();
     Q_INVOKABLE QVariantList getQueue();
+    Q_INVOKABLE bool resetQueue();
 
 private:
     bool loadPlugins();

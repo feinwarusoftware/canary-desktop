@@ -49,12 +49,12 @@ bool Library::createLib() {
 
 	int idNumber = 0;
 
-	if (!QDir("cache").exists()) {
-		QDir().mkdir("cache");
+	if (!QDir("react/canary-desktop/public/cache").exists()) {
+		QDir().mkdir("react/canary-desktop/public/cache");
 	}
 
-	if (!QDir("cache/covers").exists()) {
-		QDir().mkdir("cache/covers");
+	if (!QDir("react/canary-desktop/public/cache/covers").exists()) {
+		QDir().mkdir("react/canary-desktop/public/cache/covers");
 	}
 
 	foreach(const QJsonValue & value, listArray) {
@@ -166,7 +166,7 @@ bool Library::createLib() {
 			CCover cover;
 
 			if (cover.getCover(fr, albumCover, 300, 300, QFileInfo(fileDirString).canonicalPath())) {
-				QString coverFileName = "cache/covers/" + QString::number(idNumber) + ".jpg";
+				QString coverFileName = "react/canary-desktop/public/cache/covers/" + QString::number(idNumber) + ".jpg";
 
 				albumCover.save(coverFileName, "JPG", 100);
 			}

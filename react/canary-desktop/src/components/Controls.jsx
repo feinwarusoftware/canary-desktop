@@ -6,7 +6,7 @@ function Controls(props){
     const playerObject = props.playerObject;
 
     const [nowPlayingData, setNowPlayingData] = useState({
-        len:0
+        lengthInSeconds:0
     });
 
     const [nowPlayingSongPos, setPos] = useState(0);
@@ -16,7 +16,7 @@ function Controls(props){
 
         playerObject.clear.connect(function(){
             setNowPlayingData({
-                len:0,
+                lengthInSeconds:0,
                 title:"",
                 artist:"",
                 album:"",
@@ -41,7 +41,7 @@ function Controls(props){
             <button onClick={props.stuff}>Load Test Song</button>
             <div className="current-song-info">
                 <div className="cover-container">
-                    <img alt="Current Song Album Cover" src={nowPlayingData.coverUri} />
+                    <img alt="Current Song Album Cover" src={process.env.PUBLIC_URL + `/cache/covers/${nowPlayingData.albumid}.jpg`} />
                 </div>
                 <div className="nowplaying">
                     <span>{nowPlayingData.title}</span>
@@ -64,7 +64,7 @@ function Controls(props){
             onChange={(e)=>{
                 setPos(e.target.value);
             }}
-            max={nowPlayingData.len} 
+            max={nowPlayingData.lengthInSeconds} 
             onMouseDown={()=>{
                 console.log("mousedown")
                 playerObject.isDraggingSeekbar = true;
@@ -72,7 +72,7 @@ function Controls(props){
 
             /> 
             <div className="time">
-                <span className="currentTime">{toMSS(nowPlayingSongPos)}</span>/{toMSS(nowPlayingData.len)}
+                <span className="currentTime">{toMSS(nowPlayingSongPos)}</span>/{toMSS(nowPlayingData.lengthInSeconds)}
             </div>
             <i className="fas fa-volume-up"></i> <input className="vs" type="range" defaultValue="1" min="0" max="1" step="any" onChange={(e)=>{playerObject.playerClass.changeVolume(e.target.value)}}/>
         </div>

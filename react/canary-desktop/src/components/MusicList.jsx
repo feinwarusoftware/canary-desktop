@@ -1,38 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import {
+    Link
+  } from "react-router-dom";
 import '../styles/MusicList.css'
 
 function MusicList({libObject}) {
     const [data, setData] = useState(false);
-    /*var arr = [];
-    for(var i=1;i<339;i++){
-        arr.push(i);
-    }
 
-    const list = arr.map((index) =>
-        <div className="listItem" key={index} style={{
-            backgroundImage:`url(./cache/covers/${index}.png)`
-        }}></div>
-    );*/
-
-            /*let loadedAlbums = [];
-        let albums = {};
-
-        data.forEach(function(song){
-            if(loadedAlbums.includes(song.albumid)){
-                albums[song.albumid].push(song);
-                return; 
-            }
-
-            loadedAlbums.push(song.albumid);
-            albums[song.albumid] = [];
-            albums[song.albumid].push(song);
-        });*/
-
-    /*if(data){
-        console.log("tem coisas, vamos desenhar");
-        console.log(data);
-    }*/
-
+    //maybe TODO: optimze, make so it doesn't reload everytime
     useEffect(()=>{
         if(!data){
             console.log("Dados em branco, carregando...");
@@ -68,10 +43,12 @@ function MusicList({libObject}) {
                 });
 
                 const a = Object.keys(albums).map(key => 
+                    <Link to={{ pathname: `/album/${key}`, state: { data: albums[key]} }}>
                     <div key={key}>
                         <span>{albums[key].artist} - {albums[key].name}</span>
                         <img src={process.env.PUBLIC_URL + `/cache/covers/${key}.jpg`} />
                     </div>
+                    </Link>
                 );
 
                 setData(a);
