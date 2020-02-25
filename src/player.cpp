@@ -274,6 +274,23 @@ bool Player::jump(bool direction) {
 	return false;
 }
 
+bool Player::jumpTo(int pos) {
+	if (!isPlaying) {
+		play();
+	}
+
+	queue[b].isPlayingNow = false;
+
+	if (pos == 0) {
+		lastCallWasPrev = true;
+	}
+
+	b = pos - 1;
+
+	return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+
+}
+
 void Player::clearQueue() {
 	/*if (queue.size() == 0) {
 		return;
@@ -282,7 +299,6 @@ void Player::clearQueue() {
 	queue.clear();
 	//queue.squeeze(); //frees allocated memory places - maybe not necessary
 	QMetaObject::invokeMethod(root, "clear");
-	qDebug() << volume;
 }
 
 bool Player::playing() {

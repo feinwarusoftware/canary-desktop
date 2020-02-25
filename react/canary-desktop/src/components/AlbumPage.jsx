@@ -7,18 +7,15 @@ function AlbumPage({location, playerObject}){
     const data = location.state.data;
     console.log(data);
 
-    function insertAlbum(pos){
-        data.tracks.forEach(function(song, index){
-            //TODO: looping for inserting terrible, optimze by loading array (possible!)
-            playerObject.insertToQueue(index, song);
-        });
-        //playerObject.playerClass.loadSong(pos);
-    }
-
     const tracks = data.tracks.map((song, index) =>
         <li 
         key={index}
         onClick={()=>{
+            if(song.albumid == playerObject.nowPlayingAlbum){
+                console.log('oie');
+                return playerObject.playerClass.jumpTo(index);
+            }
+            console.log('oie 2')
             playerObject.insertAlbumToQueue(data.tracks, index);
         }}
         >{index + 1} {song.title[0]}</li>
