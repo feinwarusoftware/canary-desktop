@@ -36,6 +36,7 @@ public:
     Q_INVOKABLE bool changeVolume(float v);
     Q_INVOKABLE bool seek(double to);
     Q_INVOKABLE bool jump(bool direction);
+    Q_INVOKABLE bool jumpTo(int pos);
     Q_INVOKABLE void clearQueue();
     Q_INVOKABLE bool playing();
     Q_INVOKABLE QVariantList getQueue();

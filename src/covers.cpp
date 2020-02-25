@@ -9,8 +9,6 @@
 
 #include <QDebug>
 
-/*QString coverFileNames[2] = {"cover", "folder" };
-QString coverFileFormats[2] = { "jpg", "png" };*/
 QString coverFileTypes[4] = {
 	"cover.png",
 	"cover.jpg",
@@ -22,7 +20,7 @@ CCover::CCover(QObject* parent) : QObject(parent) {
 
 }
 
-bool drawCover(const TagLib::ByteVector& data, QImage& imgObj, int w, int h) { //TODO LATER: adapt this to receive QImages for manipulation later
+bool drawCover(const TagLib::ByteVector& data, QImage& imgObj, int w, int h) {
 	QImage image;
 
 	bool imageLoad = image.loadFromData((const uchar*)data.data(), data.size());
@@ -33,22 +31,6 @@ bool drawCover(const TagLib::ByteVector& data, QImage& imgObj, int w, int h) { /
 
 	return imageLoad;
 }
-
-//TRANSFORMAR EM VERSÃO QIMAGE -> PASSAR PRA BASE64 NO PLAYER PQ ASSIM DÁ PRA APROVEITAR A FUNÇÃO PRA FAZER OS JPEG
-
-//UPDATE -> GETGOVER / INJECTOVER / DRAWCOVER
-
-/*
-(comment in the previous line)
-changes may be done here in the future to contemplate the pre-saving (caching) of un-resized QImages.
-basically we would cache the cover of the album like we cache the metadata, to display it as a miniature and then bigger on the display, when it's played.
-we would cache the QImage to we wouldn't need to extract it twice - only resize it in different sizes. since it's not being used right now (cover is only being used in album and current song)
-not changes were made to the code yet
-Personal note: I personally prefer to not use thumbnails at all. Too much RAM usage and visual polution, with really no great advantage to counter. I'd go for a "more Spotify" approach.
-My suggested approcah by now, as I was about to create a info caching system is: to not have a live caching system, but rather use the information stored in Canary's libraries.
-*/
-
-//TODO/WARNING: RAM usage may (pretty sure it does) vary according to image size. Resize *before* inserting to QML recommended.
 
 bool ExtractAPE(TagLib::APE::Tag* tag, QImage& target, int w, int h)
 {
@@ -131,8 +113,6 @@ bool ExtractMP4(TagLib::MP4::File* file, QImage& target, int w, int h)
 	return false;
 }
 
-
-//TODO: WHEN NO COVER TRY COVER.JPG OR FOLDER.JPG / PNG
 bool CCover::getCover(const TagLib::FileRef& fr, QImage& target, int w, int h, QString fileDir) {
 	bool found = false;
 
