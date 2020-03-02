@@ -11,8 +11,6 @@
 
 #endif
 
-CCover cover;
-
 BASS_INFO currentDeviceInfo;
 
 HSTREAM mixer, source;

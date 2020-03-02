@@ -19,8 +19,7 @@ function Controls(props){
                 lengthInSeconds:0,
                 title:"",
                 artist:"",
-                album:"",
-                coverUri:""
+                album:""
             })
         });
 

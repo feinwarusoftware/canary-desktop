@@ -2,6 +2,8 @@
 
 #include <QDebug>
 
+CCover cover;
+
 QList<QString> supportedFormats = { "mp3", "ogg", "wav", "aiff", "flac", "wv", "opus", "m4a", "caf", "ape", "aac", "ac3", "tta" };
 
 Library::Library(QObject* parent) : QObject(parent) {
@@ -80,7 +82,6 @@ bool Library::createLib() {
 		qDebug() << fileDirString;
 
 		song.insert("dir", fileDirString); //write the file directory into the library, even if it has no tagss
-
 		//checks for format-specific tags - will be replaced with the normal ones if repeated
 		if (TagLib::MPEG::File* file = dynamic_cast<TagLib::MPEG::File*>(fr.file()))
 		{
@@ -162,8 +163,6 @@ bool Library::createLib() {
 			song.insert("albumid", idNumber);
 
 			QImage albumCover; //preparing variable to recieve cover art
-
-			CCover cover;
 
 			if (cover.getCover(fr, albumCover, 300, 300, QFileInfo(fileDirString).canonicalPath())) {
 				QString coverFileName = "react/canary-desktop/public/cache/covers/" + QString::number(idNumber) + ".jpg";
