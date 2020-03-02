@@ -6,15 +6,17 @@ import 'react-contexify/dist/ReactContexify.min.css';
 import '../styles/AlbumPage.css'
 
 function AlbumPage({location, playerObject}){
-    const [nowPlayingSong, setNowPlayingSong] = useState(playerObject.nowPlayingSong);
+    const [nowPlayingSong, setNowPlayingSong] = useState(playerObject.nowPlaying.dir);
+
+    function c({dir}){ //TODO: remove this function XD
+        setNowPlayingSong(dir);
+    }
 
     useEffect(() => {
-        playerObject.setNowPlayingInfo.connect(function(data){
-            setNowPlayingSong(data.dir);
-        });
+        playerObject.setNowPlayingInfo.connect(c);
 
         return() =>{
-            playerObject.setNowPlayingInfo.disconnect();
+            playerObject.setNowPlayingInfo.disconnect(c);
         }
     },  []);
 
@@ -23,7 +25,8 @@ function AlbumPage({location, playerObject}){
     console.log(data);
 
     const songCall = (i, albumid, tracks) => {
-        if(albumid === playerObject.nowPlayingAlbum){
+        console.log('mesmo álbum')
+        if(albumid === playerObject.nowPlaying.albumid){
             return playerObject.playerClass.jumpTo(i);
         }
         playerObject.insertAlbumToQueue(tracks, i);
@@ -37,7 +40,7 @@ function AlbumPage({location, playerObject}){
     );
 
     return(
-        <div className="album">
+        <div className="albumPage">
             <img src={process.env.PUBLIC_URL + `/cache/covers/${params.id}.jpg`} />
             <br></br>
             {data.name}

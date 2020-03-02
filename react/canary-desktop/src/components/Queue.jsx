@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Song from './Song';
 
 function Queue({playerObject}) {
     //MAYBE TODO: optimize this based on the AlbumPage logic (default values based on properties)
@@ -7,7 +8,9 @@ function Queue({playerObject}) {
 
     function printQueue(data) {
         const qS = data.map((song, index) =>
-            <li key={index}>{song.title} {song.isPlayingNow ? "Now Playing" : ""}</li>
+            //<li key={index}>{song.title} {song.isPlayingNow ? "Now Playing" : ""}</li>
+            <Song key={index} name={song.title[0]} artist={song.artist[0]} album={song.album[0]} length={song.lengthInSeconds} songCallback={()=> null} nowPlaying={song.isPlayingNow ? true : false}>
+            </Song>
         );
 
         setQueue(qS);

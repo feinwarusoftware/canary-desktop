@@ -5,9 +5,7 @@ import '../styles/Controls.css'
 function Controls(props){
     const playerObject = props.playerObject;
 
-    const [nowPlayingData, setNowPlayingData] = useState({
-        lengthInSeconds:0
-    });
+    const [nowPlayingData, setNowPlayingData] = useState(playerObject.nowPlaying);
 
     const [nowPlayingSongPos, setPos] = useState(0);
 
