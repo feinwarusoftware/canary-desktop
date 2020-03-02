@@ -1,24 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from "react-router";
+import { Menu, Item, Separator, Submenu, MenuProvider } from 'react-contexify';
+import Song from './Song';
+import 'react-contexify/dist/ReactContexify.min.css';
 import '../styles/AlbumPage.css'
 
 function AlbumPage({location, playerObject}){
+    const [nowPlayingSong, setNowPlayingSong] = useState(playerObject.nowPlayingSong);
+
+    useEffect(() => {
+        playerObject.setNowPlayingInfo.connect(function(data){
+            setNowPlayingSong(data.dir);
+        });
+
+        return() =>{
+            playerObject.setNowPlayingInfo.disconnect();
+        }
+    },  []);
+
     const params = useParams();
     const data = location.state.data;
     console.log(data);
 
+    const songCall = (i, albumid, tracks) => {
+        if(albumid === playerObject.nowPlayingAlbum){
+            return playerObject.playerClass.jumpTo(i);
+        }
+        playerObject.insertAlbumToQueue(tracks, i);
+    }
+
     const tracks = data.tracks.map((song, index) =>
-        <li 
-        key={index}
-        onClick={()=>{
-            if(song.albumid == playerObject.nowPlayingAlbum){
-                console.log('oie');
-                return playerObject.playerClass.jumpTo(index);
-            }
-            console.log('oie 2')
-            playerObject.insertAlbumToQueue(data.tracks, index);
-        }}
-        >{index + 1} {song.title[0]}</li>
+        <Song number={index + 1} name={song.title[0]} length={song.lengthInSeconds} songCallback={()=> songCall(index, song.albumid, data.tracks)} 
+        //no need to compare albums cuz there are not two songs with the same dir
+        nowPlaying={nowPlayingSong === song.dir ? true : false}>
+        </Song>
     );
 
     return(

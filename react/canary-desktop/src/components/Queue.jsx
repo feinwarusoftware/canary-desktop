@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 function Queue({playerObject}) {
+    //MAYBE TODO: optimize this based on the AlbumPage logic (default values based on properties)
     const [queue, setQueue] = useState(false);
     const [isUpdate, setIsUpdate] = useState(false);
 
