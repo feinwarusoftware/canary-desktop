@@ -1,4 +1,7 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700,800&display=swap');
+
 .App{
+  font-family: 'Open Sans';
   color:#fff;
   position:relative;
   user-select: none;

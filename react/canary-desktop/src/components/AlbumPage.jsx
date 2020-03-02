@@ -22,6 +22,7 @@ function AlbumPage({location, playerObject}){
 
     const params = useParams();
     const data = location.state.data;
+    let albumLength = 0;
     console.log(data);
 
     const songCall = (i, albumid, tracks) => {
@@ -32,22 +33,29 @@ function AlbumPage({location, playerObject}){
         playerObject.insertAlbumToQueue(tracks, i);
     }
 
-    const tracks = data.tracks.map((song, index) =>
-        <Song number={index + 1} name={song.title[0]} length={song.lengthInSeconds} songCallback={()=> songCall(index, song.albumid, data.tracks)} 
+    const tracks = data.tracks.map((song, index) =>{
+        albumLength = albumLength + song.lengthInSeconds;
+
+        return(<Song number={index + 1} name={song.title[0]} length={song.lengthInSeconds} songCallback={()=> songCall(index, song.albumid, data.tracks)} 
         //no need to compare albums cuz there are not two songs with the same dir
         nowPlaying={nowPlayingSong === song.dir ? true : false}>
-        </Song>
-    );
+        </Song>   
+        );
+    });
 
     return(
         <div className="albumPage">
-            <img src={process.env.PUBLIC_URL + `/cache/covers/${params.id}.jpg`} />
-            <br></br>
-            {data.name}
-            <br></br>
-            by {data.artist}
-            <br></br>
-            {tracks}
+            <div className="album-info">
+                <div className="coverArt" style={{backgroundImage:`url('${process.env.PUBLIC_URL}/cache/covers/${params.id}.jpg')`}}></div>
+                <div className="album-databox">
+                    <span className="album-databox-name">{data.name}</span>
+                    <span>by {data.artist}</span>
+                    <span>{data.date ? `${data.date} - ` : ""}{data.tracks.length} songs - {Math.floor(albumLength / 60)}min</span>
+                </div>
+            </div>
+            <div className="tracklist">
+                {tracks}
+            </div>
         </div>
     );
 }
