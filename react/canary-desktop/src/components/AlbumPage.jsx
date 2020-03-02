@@ -6,7 +6,7 @@ import 'react-contexify/dist/ReactContexify.min.css';
 import '../styles/AlbumPage.css'
 
 function AlbumPage({location, playerObject}){
-    const [nowPlayingSong, setNowPlayingSong] = useState(playerObject.nowPlayingSong);
+    const [nowPlayingSong, setNowPlayingSong] = useState(playerObject.nowPlaying.dir);
 
     useEffect(() => {
         playerObject.setNowPlayingInfo.connect(function(data){
@@ -23,7 +23,8 @@ function AlbumPage({location, playerObject}){
     console.log(data);
 
     const songCall = (i, albumid, tracks) => {
-        if(albumid === playerObject.nowPlayingAlbum){
+        console.log('mesmo álbum')
+        if(albumid === playerObject.nowPlaying.albumid){
             return playerObject.playerClass.jumpTo(i);
         }
         playerObject.insertAlbumToQueue(tracks, i);
