@@ -25,14 +25,14 @@ int main(int argc, char* argv[])
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml"))); //loads the QML interface
 
-    /*QObject* root = engine.rootObjects().first();
+    QObject* root = engine.rootObjects().first();
 
     QObject::connect(
-        &library, &Library::libLoaded,
-        [=](QVariantList& l) {
-            qDebug() << l;
+        &player, &Player::updatePlaying,
+        [=](bool to) {
+            QMetaObject::invokeMethod(root->findChild<QObject*>("playerObject"), "updatePlaying", Q_ARG(bool, to));
         }
-    );*/
+    );
 
     player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
 

@@ -44,6 +44,9 @@ public:
 
 private:
     bool loadPlugins();
+
+signals:
+    void updatePlaying(bool to);
 };
 
 #endif //PLAYER_H

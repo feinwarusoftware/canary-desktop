@@ -1,4 +1,5 @@
 import React from 'react';
+import { Disc, List } from 'react-feather';
 import {
     BrowserRouter as Router,
     Route,
@@ -10,9 +11,9 @@ import '../styles/Sidebar.css'
 function Sidebar(props){
     return(
         <div className="sidebar">
-             <Link to="/usermusic">To the music list</Link>
+             <Link to="/usermusic"> <Disc size='40'/></Link>
              <br></br>
-             <Link to="/queue">To the queue page</Link>
+             <Link to="/queue"><List size='40'/></Link>
         </div>
     );
 }

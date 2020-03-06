@@ -198,11 +198,13 @@ double Player::getPositionInSeconds() {
 }
 
 bool Player::play() {
-	if (!isPlaying) { //verifying in case isPlaying is already TRUE (~~this happens while the trackbar is being dragged, for example, as a play function is called when it's released~~ not anymore)
+	if (!isPlaying) { //verifying in case isPlaying is already TRUE
 		isPlaying = TRUE;
 	}
 
-	if (BASS_ChannelGetPosition(source, BASS_POS_BYTE) == 0) {
+	emit updatePlaying(true);
+
+	if (BASS_ChannelGetPosition(source, BASS_POS_BYTE) == 0) { //TODO? remove this
 		return BASS_ChannelPlay(mixer, FALSE);
 	}
 
@@ -218,6 +220,9 @@ bool Player::pause() {
 		0,
 		250
 	);
+
+	emit updatePlaying(false);
+
 	return BASS_ChannelPause(mixer);
 }
 

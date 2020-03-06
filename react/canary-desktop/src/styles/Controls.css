@@ -11,6 +11,9 @@
 
 .cover-container{
     background:rgba(255,255,255,0.05);
+    background-repeat:no-repeat;
+    background-position: center center;
+    background-size:100% auto;
 }
 
 .current-song-info img{
@@ -32,18 +35,16 @@
     height:52px;
 }
 
+.nameContainer{
+    width:200px;
+    height:20px;
+    overflow:hidden;
+}
+
 .fbtn{
     opacity:.7;
     font-size:18px;
 }
-
-/*.btns button{
-    padding: 0;
-    border: none;
-    background: none;
-    color:#fff;
-    cursor:pointer;
-}*/
 
 .playbtn{
     font-size:42px;
@@ -66,9 +67,26 @@
     outline: none; 
 }
 
-.btns{
-    display:flex;
-    margin:0 auto;
+.btns {
+    display: flex;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    align-items:center;
+}
+
+.btns div{
+    margin:0 20px;
+}
+
+.btns div, .btns svg{
+    cursor:pointer;
+    opacity:.75;
+}
+
+.btns div:hover, .btns svg:hover{
+    opacity:1;
 }
 
 .nowplaying{
@@ -78,43 +96,50 @@
 .progress-bar{
     position:absolute;
     top:0;
-    left:50px;
+    left:0px;
     width:100%;
-    height:20px;
-    flex-shrink: 0;
-    width:90%;
-}
-
-/*.progress-bar{
-    position:absolute;
-    top:0;
-    left:0;
-    height:20px;
     flex-shrink: 0;
     width:100%;
-    -webkit-appearance: none;
-    background-color:#212121;
-    background-image: linear-gradient(to right, #ffa800, #f24b70);
-    background-repeat:no-repeat;
-    background-size:0 0;
+    /*background:rgba(255,255,255,.05);*/
 }
 
-.progress-bar::-webkit-slider-thumb {
+input[type='range'] {
     -webkit-appearance: none;
-    height: 1px;
-    width: 1px;
-    opacity:0;
+    background-color: rgba(255,255,255,0.2);
+    height: 6px;
+    overflow: hidden;
+    outline:none;
+  }
+  
+input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    box-shadow: -6003px 0 0 6000px rgba(255,255,255,0.5);
+    cursor: pointer;
+    height: 6px;
+    width: 6px;
+    border: 0;
 }
 
-.progress-bar:focus {
-    outline: none;
-}*/
+input[type='range']:hover::-webkit-slider-thumb{
+    background: #ffa800;
+    box-shadow: -6003px 0 0 6000px #ffa800;
+}
 
 .time{
     margin-right:20px;
 }
 
 .vs{
-    margin-right:20px;
-    margin-left:8px;
+    border-radius: 50px;
+    margin-left:6px;
+}
+
+.volContainer{
+    position:absolute;
+    right:25px;
+    bottom:45px;
+    display:flex;
+    align-items:center;
 }

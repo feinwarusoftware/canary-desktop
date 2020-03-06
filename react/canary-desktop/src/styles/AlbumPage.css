@@ -1,5 +1,8 @@
+.songObj{
+    padding:5px;
+}
+
 .songObj span{
-    display:block;
     padding:5px;
 }
 
@@ -7,16 +10,8 @@
     background:rgba(255,255,255,.1);
 }
 
-.songNumber, .songName, .songArtist, .songAlbum{
-    float:left;
-}
-
 .songNumber{
     width:2px;
-}
-
-.nowPlayingSongObj{
-    color:cyan;
 }
 
 .albumPage{

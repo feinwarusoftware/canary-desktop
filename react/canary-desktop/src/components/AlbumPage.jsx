@@ -51,6 +51,7 @@ function AlbumPage({location, playerObject}){
                     <span className="album-databox-name">{data.name}</span>
                     <span>by {data.artist}</span>
                     <span>{data.date ? `${data.date} - ` : ""}{data.tracks.length} songs - {Math.floor(albumLength / 60)}min</span>
+                    <button onClick={()=> songCall(0, data.tracks[0].albumid, data.tracks)}>Play</button>
                 </div>
             </div>
             <div className="tracklist">

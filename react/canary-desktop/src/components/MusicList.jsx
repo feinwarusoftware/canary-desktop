@@ -44,10 +44,7 @@ function MusicList({libObject}) {
 
                 const a = Object.keys(albums).map(key => 
                     <Link key={key} to={{ pathname: `/album/${key}`, state: { data: albums[key]} }}>
-                    <div>
-                        <span>{albums[key].artist} - {albums[key].name}</span>
-                        <img src={process.env.PUBLIC_URL + `/cache/covers/${key}.jpg`} />
-                    </div>
+                    <div style={{backgroundImage:`url('${process.env.PUBLIC_URL}/cache/covers/${key}.jpg')`}}></div>
                     </Link>
                 );
 
