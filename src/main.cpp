@@ -8,6 +8,7 @@
 
 #include "player.h"
 #include "library.h"
+#include "lastfm.h"
 
 int main(int argc, char* argv[])
 {
@@ -18,8 +19,11 @@ int main(int argc, char* argv[])
 
     Player player;
     Library library;
+    LastFM lastfm;
+
     engine.rootContext()->setContextProperty("player", &player); //exposes the C++ classes to QML
     engine.rootContext()->setContextProperty("library", &library);
+    engine.rootContext()->setContextProperty("lastfm", &lastfm);
 
     //QObject::connect(player, &Player::loadSong, someFunction);
 

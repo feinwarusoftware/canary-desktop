@@ -1,5 +1,5 @@
 import React from 'react';
-import { Disc, List } from 'react-feather';
+import { Disc, List, Settings } from 'react-feather';
 import {
     BrowserRouter as Router,
     Route,
@@ -14,6 +14,8 @@ function Sidebar(props){
              <Link to="/usermusic"> <Disc size='40'/></Link>
              <br></br>
              <Link to="/queue"><List size='40'/></Link>
+             <br></br>
+             <Link to="/settings"><Settings size='40'/></Link>
         </div>
     );
 }
