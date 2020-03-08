@@ -8,6 +8,7 @@
 
 #include "player.h"
 #include "library.h"
+#include "lastfm.h"
 
 int main(int argc, char* argv[])
 {
@@ -18,21 +19,24 @@ int main(int argc, char* argv[])
 
     Player player;
     Library library;
+    LastFM lastfm;
+
     engine.rootContext()->setContextProperty("player", &player); //exposes the C++ classes to QML
     engine.rootContext()->setContextProperty("library", &library);
+    engine.rootContext()->setContextProperty("lastfm", &lastfm);
 
     //QObject::connect(player, &Player::loadSong, someFunction);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml"))); //loads the QML interface
 
-    /*QObject* root = engine.rootObjects().first();
+    QObject* root = engine.rootObjects().first();
 
     QObject::connect(
-        &library, &Library::libLoaded,
-        [=](QVariantList& l) {
-            qDebug() << l;
+        &player, &Player::updatePlaying,
+        [=](bool to) {
+            QMetaObject::invokeMethod(root->findChild<QObject*>("playerObject"), "updatePlaying", Q_ARG(bool, to));
         }
-    );*/
+    );
 
     player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
 

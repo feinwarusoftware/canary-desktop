@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { SkipForward, SkipBack, Volume2 } from 'react-feather';
+import PlayButton from './PlayButton';
 import {toMSS} from './UsefulFunctions';
 import '../styles/Controls.css'
 
-function Controls(props){
-    const playerObject = props.playerObject;
-
+function Controls({playerObject}){
     const [nowPlayingData, setNowPlayingData] = useState(playerObject.nowPlaying);
 
     const [nowPlayingSongPos, setPos] = useState(0);
@@ -35,25 +35,21 @@ function Controls(props){
 
     return(
         <div className="playbar">
-            <button onClick={props.stuff}>Load Test Song</button>
             <div className="current-song-info">
-                <div className="cover-container">
-                    <img alt="Current Song Album Cover" src={process.env.PUBLIC_URL + `/cache/covers/${nowPlayingData.albumid}.jpg`} />
-                </div>
+                <div className="cover-container" style={{backgroundImage:`url('${process.env.PUBLIC_URL}/cache/covers/${nowPlayingData.albumid}.jpg')`}}></div>
                 <div className="nowplaying">
-                    <span>{nowPlayingData.title}</span>
-                    <span>{nowPlayingData.artist}</span>
+                    <span class="nameContainer">{nowPlayingData.title}</span>
+                    <span class="nameContainer">{nowPlayingData.artist}</span>
+                    <span className="time">
+                        {toMSS(nowPlayingSongPos)}/{toMSS(nowPlayingData.lengthInSeconds)}
+                    </span>
                 </div>
             </div>
 
             <div className="btns">
-                <button onClick={() => playerObject.jump("previous")}>Previous</button>
-                <button onClick={props.playCall}>Play/Pause</button>
-                <button onClick={() => playerObject.jump("forward")}>Forward</button>
-                <button onClick={()=>{
-                    playerObject.insertToQueue(1, "G:/Músicas/Rainbow/Rising/05. Stargazer.flac");
-                    playerObject.insertToQueue(2, "G:/Músicas/Ok Goodnight/Limbo/Ok Goodnight - Limbo - 03 Free Fall.flac");
-                }}>Load more</button>
+                <SkipBack size='30' onClick={() => playerObject.jump("previous")}/>
+                <PlayButton playerObject={playerObject}/>
+                <SkipForward size='30' onClick={() => playerObject.jump("forward")}/>
             </div>
 
             <input className="progress-bar" type="range" min="0"
@@ -68,10 +64,10 @@ function Controls(props){
             }} 
 
             /> 
-            <div className="time">
-                <span className="currentTime">{toMSS(nowPlayingSongPos)}</span>/{toMSS(nowPlayingData.lengthInSeconds)}
+            <div class="volContainer">
+                <Volume2 size='20'/>
+                <input className="vs" type="range" defaultValue="1" min="0" max="1" step="any" onChange={(e)=>{playerObject.playerClass.changeVolume(e.target.value)}}/>
             </div>
-            <i className="fas fa-volume-up"></i> <input className="vs" type="range" defaultValue="1" min="0" max="1" step="any" onChange={(e)=>{playerObject.playerClass.changeVolume(e.target.value)}}/>
         </div>
     );
 }
