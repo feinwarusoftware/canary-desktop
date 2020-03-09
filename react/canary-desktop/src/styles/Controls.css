@@ -143,3 +143,21 @@ input[type='range']:hover::-webkit-slider-thumb{
     display:flex;
     align-items:center;
 }
+
+.repeat-indicator{
+    font-size:9px;
+    display:block;
+    position:absolute;
+    right:20px;
+    bottom:15px;
+    background: #ffa800;
+    color:#fff;
+    width:10px;
+    height:10px;
+    text-align:center;
+    border-radius:50%;
+}
+
+.repeat, .repeat svg{
+    opacity:1!important;
+}

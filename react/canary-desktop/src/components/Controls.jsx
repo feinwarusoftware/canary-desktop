@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SkipForward, SkipBack, Volume2 } from 'react-feather';
+import { SkipForward, SkipBack, Volume2, Repeat } from 'react-feather';
 import PlayButton from './PlayButton';
 import {toMSS} from './UsefulFunctions';
 import '../styles/Controls.css'
@@ -8,6 +8,8 @@ function Controls({playerObject}){
     const [nowPlayingData, setNowPlayingData] = useState(playerObject.nowPlaying);
 
     const [nowPlayingSongPos, setPos] = useState(0);
+
+    const [repeat, setRepeatValue] = useState(0);
 
     useEffect(() => {
         playerObject.setNowPlayingInfo.connect(setNowPlayingData); //TODO: fix weird seekbar when song transition thorugh here
@@ -50,6 +52,22 @@ function Controls({playerObject}){
                 <SkipBack size='30' onClick={() => playerObject.jump("previous")}/>
                 <PlayButton playerObject={playerObject}/>
                 <SkipForward size='30' onClick={() => playerObject.jump("forward")}/>
+                <div onClick={()=>{
+                        let n = repeat;
+                        console.log("n antigo: " + n)
+                        if(n < 2){
+                            n = n + 1;
+                        }
+                        else{
+                            n = 0;
+                        }
+                        console.log("novo n: " + n);
+                        playerObject.playerClass.setRepeat(n);
+                        setRepeatValue(n);
+                }} className="repeat">
+                    <Repeat size="20" stroke={repeat == 1 || repeat == 2 ? "#ffa800" : "#fff"}/>
+                    <span className={repeat == 2 ? "repeat-indicator" : ""}>{repeat == 2 ? "1" :""}</span>
+                </div>
             </div>
 
             <input className="progress-bar" type="range" min="0"

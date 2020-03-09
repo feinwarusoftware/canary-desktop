@@ -15,11 +15,9 @@ function PlayButton({playerObject}){
     function playCall(){
         playerObject.playerClass.playing().then((isPlaying)=>{
             if(isPlaying){
-                setPlaying(false);
                 playerObject.playerClass.pause()
             }
             else{
-                setPlaying(true);
                 playerObject.playerClass.play()
             }
         })
