@@ -41,6 +41,7 @@ public:
     Q_INVOKABLE bool playing();
     Q_INVOKABLE QVariantList getQueue();
     Q_INVOKABLE bool resetQueue();
+    Q_INVOKABLE void setRepeat(int n);
 
 private:
     bool loadPlugins();

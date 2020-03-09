@@ -23,6 +23,8 @@ bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actu
 
 bool lastCallWasPrev = false;
 
+int repeat = 0;
+
 float volume = 1;
 
 struct songStruct {
@@ -107,13 +109,19 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	}
 
 	if (b + 1 > queue.size() - 1) {
-		qDebug() << "cabou negada";
 		Player player;
+		if (repeat == 1) {
+			player.jumpTo(0);
+			return;
+		}
+		qDebug() << "cabou negada";
 		player.clearQueue();
 		return;
 	};
 
-	b = b + 1;
+	if (repeat != 2) {
+		b = b + 1;
+	}
 
 	source = BASS_StreamCreateFile(FALSE, queue[b].dir.toStdString().c_str(), 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
 	BASS_Mixer_StreamAddChannel(mixer, source, BASS_STREAM_AUTOFREE | BASS_MIXER_NORAMPIN); // plug it in
@@ -325,6 +333,10 @@ QVariantList Player::getQueue() {
 	}
 
 	return q;
+}
+
+void Player::setRepeat(int n) {
+	repeat = n;
 }
 
 /*

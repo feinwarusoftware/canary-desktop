@@ -45,10 +45,10 @@ public:
 	bool createLib();
 	Q_INVOKABLE QVariantList loadLib();
 	Q_INVOKABLE void updateLib(QStringList dirPath);
-	void createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idNumber);
 
 private:
 	void loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj);
+	void createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idNumber);
 };
 
 #endif //LIBRARY_H
