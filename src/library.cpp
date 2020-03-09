@@ -49,8 +49,6 @@ bool Library::createLib() {
 
 	QJsonArray libArray;
 
-	int idNumber = 0;
-
 	if (!QDir("react/canary-desktop/public/cache").exists()) {
 		QDir().mkdir("react/canary-desktop/public/cache");
 	}
@@ -59,7 +57,20 @@ bool Library::createLib() {
 		QDir().mkdir("react/canary-desktop/public/cache/covers");
 	}
 
-	foreach(const QJsonValue & value, listArray) {
+	createInfoList(listArray, libArray, 0);
+
+	QJsonDocument libDoc(libArray);
+
+	QFile libFile("./userdata/library.json");
+	bool cLib = libFile.open(QIODevice::ReadWrite);
+	libFile.write(libDoc.toJson());
+	//libFile.close();
+
+	return cLib;
+}
+
+void Library::createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idNumber) {
+	foreach(const QJsonValue & value, fileList) {
 		QString fileDirString = value.toString();
 		QByteArray fileName = QFile::encodeName(fileDirString); //using QFile to encode dir so it's readable to TagLib
 
@@ -144,14 +155,14 @@ bool Library::createLib() {
 			loopForTags(fr.tag()->properties(), song);
 		}
 
-		for (QJsonValueRef& sValue : libArray) {
+		for (QJsonValueRef& sValue : infoArray) {
 			if (sValue.toObject().value("album") == song.value("album") && sValue.toObject().value("date") == song.value("date")) {
 
 				if (sValue.toObject().value("albumartist") == song.value("albumartist")) { //if it has the same album artist, it's the same album
 					newAlbum = false;
 					song.insert("albumid", sValue.toObject().value("albumid"));
 				}
-				else if (newAlbum && sValue.toObject().value("artist") == song.value("artist")) {
+				else if (newAlbum && sValue.toObject().value("artist") == song.value("artist")) { //TODO/test: "newAlbum &&" not necessary
 					newAlbum = false;
 					song.insert("albumid", sValue.toObject().value("albumid"));
 				}
@@ -171,17 +182,8 @@ bool Library::createLib() {
 			}
 		}
 
-		libArray.append(song);
+		infoArray.append(song);
 	}
-
-	QJsonDocument libDoc(libArray);
-
-	QFile libFile("./userdata/library.json");
-	bool cLib = libFile.open(QIODevice::ReadWrite);
-	libFile.write(libDoc.toJson());
-	//libFile.close();
-
-	return cLib;
 }
 
 void Library::loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj) {
@@ -210,7 +212,90 @@ QVariantList Library::loadLib() {
 	return listToPass;
 }
 
-/*
-getData
-- switch album, loop, etc.
-*/
+void Library::updateLib(QStringList dirPath) {
+	QFile fileListJson("./userdata/fileList.json");
+	fileListJson.open(QIODevice::ReadOnly | QIODevice::Text);
+	QJsonArray listArray = QJsonDocument::fromJson(fileListJson.readAll()).array();
+
+	QJsonArray newLib, newItems, removedItems, newItemsInfo;
+
+	for (QString& location : dirPath) { //looping for new items
+		QDirIterator it(location, QDirIterator::Subdirectories);
+
+		while (it.hasNext()) {
+			QFileInfo fileInfo(it.next());
+			if (fileInfo.isFile() && supportedFormats.indexOf(fileInfo.suffix()) != -1) { //if it's a file / if it's a supported file
+				if (!listArray.contains(fileInfo.absoluteFilePath())) {
+					newItems.append(fileInfo.absoluteFilePath());
+				}
+
+				newLib.append(fileInfo.absoluteFilePath());
+			}
+		}
+	}
+
+	for (QJsonValue item : listArray) {
+		if (!newLib.contains(item)) {
+			removedItems.append(item);
+		}
+	}
+
+	fileListJson.close();
+
+	int biggestAlbumId = 0;
+
+	QFile libraryJSONfile("./userdata/library.json");
+	libraryJSONfile.open(QIODevice::ReadOnly | QIODevice::Text);
+	QJsonArray libraryArray = QJsonDocument::fromJson(libraryJSONfile.readAll()).array();
+
+	for (QJsonValue v : libraryArray) {
+		int albumid = v.toObject().value("albumid").toInt();
+		if (albumid > biggestAlbumId) {
+			biggestAlbumId = albumid;
+		}
+	}
+
+	createInfoList(newItems, newItemsInfo, biggestAlbumId);
+
+	QJsonArray::iterator lit;
+
+	for (lit = libraryArray.begin(); lit != libraryArray.end(); lit++) {
+		QJsonValue v(*lit);
+		QJsonObject o(v.toObject());
+		if (removedItems.contains(o.value("dir"))) {
+			libraryArray.erase(lit);
+		}
+		//if album exists
+		QJsonArray::iterator nil;
+		for (nil = newItemsInfo.begin(); nil != newItemsInfo.end(); nil++) {
+			QJsonValue nv(*nil);
+			QJsonObject no(nv.toObject());
+			if (no.value("album") == o.value("album") && no.value("date") == o.value("date") && no.value("albumid") != o.value("albumid")) {
+				if (no.value("albumartist") == o.value("albumartist") || no.value("artist") == o.value("artist")) {
+					QString coverToRemove = "react/canary-desktop/public/cache/covers/" + QString::number(no["albumid"].toInt()) + ".jpg";
+					QFile toRemove(coverToRemove);
+					toRemove.remove();
+					no["albumid"] = o["albumid"]; //change value of temp object
+					newItemsInfo.erase(nil);
+					newItemsInfo.append(no);
+				}
+			}
+		}
+	}
+
+	for (QJsonValue item : newItemsInfo) { //TODO: try concat both arrays
+		libraryArray.append(item);
+	}
+
+	libraryJSONfile.close();
+
+	libraryJSONfile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
+	QJsonDocument libJSON(libraryArray);
+	libraryJSONfile.write(libJSON.toJson());
+	libraryJSONfile.close();
+
+	fileListJson.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
+	QJsonDocument jsonDoc(newLib);
+	fileListJson.write(jsonDoc.toJson());
+	fileListJson.close();
+}
