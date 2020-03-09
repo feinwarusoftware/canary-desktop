@@ -40,6 +40,9 @@ int main(int argc, char* argv[])
 
     player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
 
+    /*QStringList dirs = { u8"G:/Músicas" };
+    library.updateLib(dirs);*/
+
     /*
         acknowledgment: I know passing the QML root as a pointer so the class can deal with it is a terrible workaround - I should be using pointers. thing is, they don't work properly
         because I'm obligated to deal with scoped functions with BASS, or static functions

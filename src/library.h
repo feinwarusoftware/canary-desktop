@@ -44,6 +44,8 @@ public:
 	bool searchDir(QStringList dirPath); //searches the directory for compatible music files, indexes all of them in a json - main index file, this is what is reviewed when songs are added/removed
 	bool createLib();
 	Q_INVOKABLE QVariantList loadLib();
+	Q_INVOKABLE void updateLib(QStringList dirPath);
+	void createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idNumber);
 
 private:
 	void loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj);
