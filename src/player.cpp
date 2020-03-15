@@ -23,6 +23,8 @@ bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actu
 
 bool lastCallWasPrev = false;
 
+bool shuffle = false;
+
 int repeat = 0;
 
 float volume = 1;
@@ -101,6 +103,8 @@ bool Player::loadPlugins() {
 
 void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 {
+	Player player;
+
 	if (!lastCallWasPrev) { // "previous" call
 		queue[b].isPlayingNow = false;
 	}
@@ -108,8 +112,14 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 		lastCallWasPrev = false;
 	}
 
+	/*if (shuffle && queue.size() > 0) {
+		int rand = qrand() % queue.size();
+		qDebug() << rand;
+		player.jumpTo(rand);
+		return;
+	}*/
+
 	if (b + 1 > queue.size() - 1) {
-		Player player;
 		if (repeat == 1) {
 			player.jumpTo(0);
 			return;
@@ -264,13 +274,21 @@ bool Player::jump(bool direction) {
 	}
 
 	if (direction) {
+		if (repeat == 2) {
+			b = b + 1;
+		}
 		return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 	}
 	else {
 		if (b > 0) {
 			queue[b].isPlayingNow = false;
 			lastCallWasPrev = true;
-			b = b - 2;
+			if (repeat == 2) {
+				b = b - 1;
+			}
+			else {
+				b = b - 2;
+			}
 
 			return BASS_Mixer_ChannelRemove(source) /*like trick with the "b - 2" thing - this makes the EndSync callback load  the "next of the previous of the previous" => -2 + 1 = -1*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 		}
@@ -292,11 +310,19 @@ bool Player::jumpTo(int pos) {
 
 	queue[b].isPlayingNow = false;
 
+	if (repeat == 2 && pos == 0) {
+		b = 0;
+	}
+	else if (repeat == 2) {
+		b = pos;
+	}
+	else {
+		b = pos - 1;
+	}
+
 	if (pos == 0) {
 		lastCallWasPrev = true;
 	}
-
-	b = pos - 1;
 
 	return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 
@@ -337,6 +363,11 @@ QVariantList Player::getQueue() {
 
 void Player::setRepeat(int n) {
 	repeat = n;
+}
+
+bool Player::setShuffle(bool to) {
+	shuffle = to;
+	return shuffle;
 }
 
 /*

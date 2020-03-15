@@ -42,6 +42,7 @@ public:
     Q_INVOKABLE QVariantList getQueue();
     Q_INVOKABLE bool resetQueue();
     Q_INVOKABLE void setRepeat(int n);
+    Q_INVOKABLE bool setShuffle(bool to);
 
 private:
     bool loadPlugins();
