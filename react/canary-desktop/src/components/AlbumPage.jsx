@@ -51,7 +51,19 @@ function AlbumPage({location, playerObject}){
                     <span className="album-databox-name">{data.name}</span>
                     <span>by {data.artist}</span>
                     <span>{data.date ? `${data.date} - ` : ""}{data.tracks.length} songs - {Math.floor(albumLength / 60)}min</span>
-                    <button onClick={()=> songCall(0, data.tracks[0].albumid, data.tracks)}>Play</button>
+                    <button onClick={()=>
+                        playerObject.playerClass.getShuffle((shuffle)=>{
+                            let s;
+                            if(shuffle){
+                                s = Math.floor(Math.random() * (data.tracks.length + 1));
+                            }
+                            else{
+                                s = 0;
+                            }
+
+                            songCall(s, data.tracks[0].albumid, data.tracks);
+                        })
+                    }>Play</button>
                 </div>
             </div>
             <div className="tracklist">

@@ -23,7 +23,7 @@ bool isPlaying = FALSE; //stores if the player SHOULD be playing, not if it actu
 
 bool lastCallWasPrev = false;
 
-bool shuffle = false;
+bool shuffle = false, ignoreShuffle = false;
 
 int repeat = 0;
 
@@ -36,9 +36,12 @@ struct songStruct {
 };
 
 QVector<songStruct> queue;
-//std::vector<char const*>::iterator queueIterator;
 
 QWORD syncpos;
+
+std::random_device rd;
+std::mt19937 eng(rd());
+std::uniform_int_distribution<int> distr;
 
 QObject* root;
 
@@ -112,15 +115,10 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 		lastCallWasPrev = false;
 	}
 
-	/*if (shuffle && queue.size() > 0) {
-		int rand = qrand() % queue.size();
-		qDebug() << rand;
-		player.jumpTo(rand);
-		return;
-	}*/
-
-	if (b + 1 > queue.size() - 1) {
+	/*priorizes repeat 2 over shuffle, shuffle over repeat 1*/
+	if (!shuffle && repeat != 2 && b + 1 > queue.size() - 1) {
 		if (repeat == 1) {
+			qDebug() << "pular para o primeiro";
 			player.jumpTo(0);
 			return;
 		}
@@ -129,8 +127,17 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 		return;
 	};
 
-	if (repeat != 2) {
+	if (shuffle && queue.size() > 0 && repeat != 2 && !ignoreShuffle) {
+		qDebug() << shuffle;
+		b = distr(eng);
+	}
+
+	else if (!shuffle && repeat != 2) {
 		b = b + 1;
+	}
+
+	if (ignoreShuffle) {
+		ignoreShuffle = false;
 	}
 
 	source = BASS_StreamCreateFile(FALSE, queue[b].dir.toStdString().c_str(), 0, 0, BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT); // open 1st source
@@ -178,6 +185,8 @@ void Player::insertToQueue(int pos, QJSValue data){
 	songObj.dir = fileName;
 	songObj.data = data;
 	songObj.isPlayingNow = false;
+
+	distr = std::uniform_int_distribution<int>(0, queue.size());
 
 	queue.insert(pos, songObj);
 }
@@ -274,16 +283,25 @@ bool Player::jump(bool direction) {
 	}
 
 	if (direction) {
-		if (repeat == 2) {
+		if (shuffle) {
+			b = distr(eng);
+		}
+		else if (repeat == 2) {
 			b = b + 1;
 		}
-		return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+		
+		//if (!shuffle) {
+			return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+		//}
 	}
 	else {
 		if (b > 0) {
 			queue[b].isPlayingNow = false;
 			lastCallWasPrev = true;
-			if (repeat == 2) {
+			if (shuffle) {
+				b = distr(eng);
+			}
+			else if (repeat == 2) {
 				b = b - 1;
 			}
 			else {
@@ -313,7 +331,7 @@ bool Player::jumpTo(int pos) {
 	if (repeat == 2 && pos == 0) {
 		b = 0;
 	}
-	else if (repeat == 2) {
+	else if (repeat == 2 || shuffle) {
 		b = pos;
 	}
 	else {
@@ -324,17 +342,17 @@ bool Player::jumpTo(int pos) {
 		lastCallWasPrev = true;
 	}
 
+	if (shuffle) {
+		ignoreShuffle = true;
+	}
+
 	return BASS_Mixer_ChannelRemove(source) /*when this happens, the next song is automatically called*/ && BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
 
 }
 
 void Player::clearQueue() {
-	/*if (queue.size() == 0) {
-		return;
-	}*/
 	isPlaying = FALSE;
 	queue.clear();
-	//queue.squeeze(); //frees allocated memory places - maybe not necessary
 	QMetaObject::invokeMethod(root, "clear");
 }
 
@@ -344,8 +362,30 @@ bool Player::playing() {
 
 bool Player::resetQueue() {
 	clearQueue();
-	bool remove = BASS_Mixer_ChannelRemove(source);
-	bool reset = BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+	bool remove, reset, wasShuffle = false, wasRepeat = false;
+
+	if (shuffle) {
+		qDebug() << "tem shuffle!";
+		shuffle = false;
+		wasShuffle = true;
+	}
+
+	if (repeat == 2) {
+		repeat = 0;
+		wasRepeat = true;
+	}
+
+	remove = BASS_Mixer_ChannelRemove(source);
+	reset = BASS_ChannelSetPosition(mixer, 0, BASS_POS_BYTE);
+
+	if (wasShuffle) {
+		shuffle = true;
+	}
+
+	if (wasRepeat) {
+		repeat = 2;
+	}
+
 	return remove && reset;
 }
 
@@ -367,6 +407,10 @@ void Player::setRepeat(int n) {
 
 bool Player::setShuffle(bool to) {
 	shuffle = to;
+	return shuffle;
+}
+
+bool Player::getShuffle() {
 	return shuffle;
 }
 
