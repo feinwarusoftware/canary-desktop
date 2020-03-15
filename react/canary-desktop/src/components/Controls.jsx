@@ -11,6 +11,8 @@ function Controls({playerObject}){
 
     const [repeat, setRepeatValue] = useState(0);
 
+    const [shuffle, setShuffleValue] = useState(false);
+
     useEffect(() => {
         playerObject.setNowPlayingInfo.connect(setNowPlayingData); //TODO: fix weird seekbar when song transition thorugh here
 
@@ -54,20 +56,24 @@ function Controls({playerObject}){
                 <SkipForward size='30' onClick={() => playerObject.jump("forward")}/>
                 <div onClick={()=>{
                         let n = repeat;
-                        console.log("n antigo: " + n)
                         if(n < 2){
                             n = n + 1;
                         }
                         else{
                             n = 0;
                         }
-                        console.log("novo n: " + n);
-                        playerObject.playerClass.setRepeat(n);
+                        playerObject.playerClass.setRepeat(n); //void function, no callback waiting
                         setRepeatValue(n);
                 }} className="repeat">
                     <Repeat size="20" stroke={repeat == 1 || repeat == 2 ? "#ffa800" : "#fff"}/>
                     <span className={repeat == 2 ? "repeat-indicator" : ""}>{repeat == 2 ? "1" :""}</span>
                 </div>
+                <button onClick={()=>{
+                    console.log('salve')
+                    playerObject.playerClass.setShuffle(!shuffle).then((s)=>{
+                        setShuffleValue(s); //wait for callbacks when possible, s = !shuffle
+                    });
+                }}>Set Shuffle -> {String(shuffle)}</button>
             </div>
 
             <input className="progress-bar" type="range" min="0"

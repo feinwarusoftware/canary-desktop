@@ -144,12 +144,16 @@ input[type='range']:hover::-webkit-slider-thumb{
     align-items:center;
 }
 
+.repeat{
+    position:relative;
+}
+
 .repeat-indicator{
     font-size:9px;
     display:block;
     position:absolute;
-    right:20px;
-    bottom:15px;
+    right:0;
+    bottom:3px;
     background: #ffa800;
     color:#fff;
     width:10px;
