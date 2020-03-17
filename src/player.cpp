@@ -415,5 +415,5 @@ bool Player::getShuffle() {
 }
 
 /*
-TODO NOTE: Werid crash when loading test song, jumping (playback finished) the loading an album. I should take a closer look.
+TODO NOTE: Weird crash when loading test song, jumping (playback finished) the loading an album. I should take a closer look.
 */

@@ -45,6 +45,7 @@ public:
 	bool createLib();
 	Q_INVOKABLE QVariantList loadLib();
 	Q_INVOKABLE void updateLib(QStringList dirPath);
+	Q_INVOKABLE void updateSong(int pos, QJsonObject song);
 
 private:
 	void loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj);
