@@ -299,3 +299,18 @@ void Library::updateLib(QStringList dirPath) {
 	fileListJson.write(jsonDoc.toJson());
 	fileListJson.close();
 }
+
+void Library::updateSong(int pos, QJsonObject song) {
+	QFile libraryJSONfile("./userdata/library.json");
+	libraryJSONfile.open(QIODevice::ReadOnly | QIODevice::Text);
+	QJsonArray libraryArray = QJsonDocument::fromJson(libraryJSONfile.readAll()).array();
+
+	libraryArray[pos] = song;
+
+	libraryJSONfile.close();
+
+	libraryJSONfile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
+	QJsonDocument libJSON(libraryArray);
+	libraryJSONfile.write(libJSON.toJson());
+	libraryJSONfile.close();
+}
