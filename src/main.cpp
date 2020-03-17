@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
         {"albumid", 1}
     };
 
-    library.updateSong(0, coiso);
+    library.updateSong(4908);
 
     /*QStringList dirs = { u8"G:/Músicas" };
     library.updateLib(dirs);*/

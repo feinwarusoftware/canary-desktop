@@ -80,13 +80,7 @@ void Library::createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idN
 
 		bool newAlbum = true;
 
-		if (fr.audioProperties() != NULL) {
-			song.insert("lengthInSeconds", fr.audioProperties()->lengthInSeconds());
-			song.insert("bitrate", fr.audioProperties()->bitrate());
-			song.insert("sampleRate", fr.audioProperties()->sampleRate());
-			song.insert("channels", fr.audioProperties()->channels());
-		}
-		else {
+		if (fr.audioProperties() == NULL) {
 			continue; //audio properties (length, etc. are not readable, do not add song to the library
 		}
 
@@ -94,66 +88,7 @@ void Library::createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idN
 
 		song.insert("dir", fileDirString); //write the file directory into the library, even if it has no tagss
 		//checks for format-specific tags - will be replaced with the normal ones if repeated
-		if (TagLib::MPEG::File* file = dynamic_cast<TagLib::MPEG::File*>(fr.file()))
-		{
-			if (file->ID3v2Tag())
-			{
-				loopForTags(file->ID3v2Tag()->properties(), song);
-			}
-			else if (file->APETag())
-			{
-				loopForTags(file->APETag()->properties(), song);
-			}
-		}
-		else if (TagLib::FLAC::File* file = dynamic_cast<TagLib::FLAC::File*>(fr.file()))
-		{
-			if (file->ID3v2Tag())
-			{
-				loopForTags(file->ID3v2Tag()->properties(), song);
-			}
-		}
-		else if (TagLib::MP4::File* file = dynamic_cast<TagLib::MP4::File*>(fr.file()))
-		{
-			if (file->tag()) {
-				loopForTags(file->tag()->properties(), song);
-			}
-		}
-		else if (TagLib::ASF::File* file = dynamic_cast<TagLib::ASF::File*>(fr.file()))
-		{
-			if (file->tag()) {
-				loopForTags(file->tag()->properties(), song);
-			}
-		}
-		else if (TagLib::APE::File* file = dynamic_cast<TagLib::APE::File*>(fr.file()))
-		{
-			if (file->APETag())
-			{
-				loopForTags(file->APETag()->properties(), song);
-			}
-		}
-		else if (TagLib::MPC::File* file = dynamic_cast<TagLib::MPC::File*>(fr.file()))
-		{
-			if (file->APETag())
-			{
-				loopForTags(file->APETag()->properties(), song);
-			}
-		}
-		else if (TagLib::RIFF::WAV::File* file = dynamic_cast<TagLib::RIFF::WAV::File*>(fr.file())) {
-			if (file->ID3v2Tag())
-			{
-				loopForTags(file->ID3v2Tag()->properties(), song);
-			}
-		}
-		else if (TagLib::RIFF::AIFF::File* file = dynamic_cast<TagLib::RIFF::AIFF::File*>(fr.file())) {
-			if (file->tag())
-			{
-				loopForTags(file->tag()->properties(), song);
-			}
-		}
-
-		if (fr.tag() != NULL) {
-			loopForTags(fr.tag()->properties(), song);
-		}
+		checkTags(fr, song);
 
 		for (QJsonValueRef& sValue : infoArray) {
 			if (sValue.toObject().value("album") == song.value("album") && sValue.toObject().value("date") == song.value("date")) {
@@ -300,12 +235,110 @@ void Library::updateLib(QStringList dirPath) {
 	fileListJson.close();
 }
 
-void Library::updateSong(int pos, QJsonObject song) {
+void Library::getRating(TagLib::ID3v2::Tag* tag, QJsonObject& song) {
+	TagLib::ID3v2::PopularimeterFrame* frame = GetPOPMFrameFromTag(tag);
+	int rating = 0;
+	if (frame->rating()) {
+		rating = frame->rating();
+	}
+	else {
+		frame->setRating(0);
+	}
+
+	song.insert("rating", rating);
+}
+
+void Library::checkTags(const TagLib::FileRef& fr, QJsonObject& song) {
+
+	song.insert("lengthInSeconds", fr.audioProperties()->lengthInSeconds());
+	song.insert("bitrate", fr.audioProperties()->bitrate());
+	song.insert("sampleRate", fr.audioProperties()->sampleRate());
+	song.insert("channels", fr.audioProperties()->channels());
+
+	qDebug() << "SALVE SALVE";
+
+	if (TagLib::MPEG::File* file = dynamic_cast<TagLib::MPEG::File*>(fr.file()))
+	{
+		if (file->ID3v2Tag())
+		{
+			getRating(file->ID3v2Tag(), song);
+			loopForTags(file->ID3v2Tag()->properties(), song);
+		}
+		else if (file->APETag())
+		{
+			loopForTags(file->APETag()->properties(), song);
+		}
+	}
+	else if (TagLib::FLAC::File* file = dynamic_cast<TagLib::FLAC::File*>(fr.file()))
+	{
+		if (file->ID3v2Tag())
+		{
+			getRating(file->ID3v2Tag(true), song);
+			loopForTags(file->ID3v2Tag()->properties(), song);
+		}
+	}
+	else if (TagLib::MP4::File* file = dynamic_cast<TagLib::MP4::File*>(fr.file()))
+	{
+		if (file->tag()) {
+			loopForTags(file->tag()->properties(), song);
+		}
+	}
+	else if (TagLib::ASF::File* file = dynamic_cast<TagLib::ASF::File*>(fr.file()))
+	{
+		if (file->tag()) {
+			loopForTags(file->tag()->properties(), song);
+		}
+	}
+	else if (TagLib::APE::File* file = dynamic_cast<TagLib::APE::File*>(fr.file()))
+	{
+		if (file->APETag())
+		{
+			loopForTags(file->APETag()->properties(), song);
+		}
+	}
+	else if (TagLib::MPC::File* file = dynamic_cast<TagLib::MPC::File*>(fr.file()))
+	{
+		if (file->APETag())
+		{
+			loopForTags(file->APETag()->properties(), song);
+		}
+	}
+	else if (TagLib::RIFF::WAV::File* file = dynamic_cast<TagLib::RIFF::WAV::File*>(fr.file())) {
+		if (file->ID3v2Tag())
+		{
+			getRating(file->ID3v2Tag(), song);
+			loopForTags(file->ID3v2Tag()->properties(), song);
+		}
+	}
+	else if (TagLib::RIFF::AIFF::File* file = dynamic_cast<TagLib::RIFF::AIFF::File*>(fr.file())) {
+		if (file->tag())
+		{
+			loopForTags(file->tag()->properties(), song);
+		}
+	}
+
+	if (fr.tag() != NULL) {
+		loopForTags(fr.tag()->properties(), song);
+	}
+}
+
+void Library::updateSong(int pos) {
+	//read file here - int pos apenas
 	QFile libraryJSONfile("./userdata/library.json");
 	libraryJSONfile.open(QIODevice::ReadOnly | QIODevice::Text);
 	QJsonArray libraryArray = QJsonDocument::fromJson(libraryJSONfile.readAll()).array();
 
-	libraryArray[pos] = song;
+	QString fileDirSring = libraryArray[pos].toObject().value("dir").toString();
+	QByteArray fileName = QFile::encodeName(fileDirSring); //using QFile to encode dir so it's readable to TagLib
+
+	TagLib::FileRef fr(fileName.toStdString().c_str());
+
+	QJsonObject s;
+
+	s.insert("dir", fileDirSring); //TODO: pass this to check string (both here and create)
+	checkTags(fr, s);
+
+	libraryArray[pos] = s;
 
 	libraryJSONfile.close();
 
@@ -313,4 +346,38 @@ void Library::updateSong(int pos, QJsonObject song) {
 	QJsonDocument libJSON(libraryArray);
 	libraryJSONfile.write(libJSON.toJson());
 	libraryJSONfile.close();
+}
+
+/* This file is part of Clementine.
+   Copyright 2013, David Sansome <me@davidsansome.com>
+
+   Clementine is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   Clementine is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Clementine.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+TagLib::ID3v2::PopularimeterFrame* Library::GetPOPMFrameFromTag(
+	TagLib::ID3v2::Tag* tag) {
+	TagLib::ID3v2::PopularimeterFrame* frame = nullptr;
+
+	const TagLib::ID3v2::FrameListMap& map = tag->frameListMap();
+	if (!map["POPM"].isEmpty()) {
+		frame =
+			dynamic_cast<TagLib::ID3v2::PopularimeterFrame*>(map["POPM"].front());
+	}
+
+	if (!frame) {
+		frame = new TagLib::ID3v2::PopularimeterFrame();
+		tag->addFrame(frame);
+	}
+	return frame;
 }

@@ -32,8 +32,8 @@
 #include <taglib/wavfile.h>
 #include <taglib/aifffile.h>
 #include <taglib/tpropertymap.h>
-
 #include <taglib/infotag.h>
+#include <taglib/popularimeterframe.h>
 
 #include "covers.h"
 
@@ -45,11 +45,14 @@ public:
 	bool createLib();
 	Q_INVOKABLE QVariantList loadLib();
 	Q_INVOKABLE void updateLib(QStringList dirPath);
-	Q_INVOKABLE void updateSong(int pos, QJsonObject song);
+	Q_INVOKABLE void updateSong(int pos);
 
 private:
+	void checkTags(const TagLib::FileRef& fr, QJsonObject& song);
 	void loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj);
 	void createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idNumber);
+	void getRating(TagLib::ID3v2::Tag* tag, QJsonObject& song);
+	TagLib::ID3v2::PopularimeterFrame* GetPOPMFrameFromTag(TagLib::ID3v2::Tag* tag);
 };
 
 #endif //LIBRARY_H
