@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 
     Library library;
 
-    /*QQmlApplicationEngine engine;
+    QQmlApplicationEngine engine;
 
     Player player;
     Library library;
@@ -40,11 +40,7 @@ int main(int argc, char* argv[])
         }
     );
 
-    player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.*/
-
-    QStringList dirs = { u8"G:/Músicas" };
-    //library.searchDir(dirs);
-    library.createLib();
+    player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
 
     //QJsonObject coiso = { "title": ["eae"] , "albumid" : 1, "artist" : ["salve"] };
     /*QJsonArray e = { "eae" };

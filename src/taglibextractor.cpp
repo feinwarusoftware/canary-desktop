@@ -91,10 +91,6 @@ QJsonArray convertList(TagLib::StringList list) {
 	return a;
 }
 
-QString convertString(TagLib::StringList list) {
-	return QString::fromStdWString(list[0].toWString());
-}
-
 void readGenericProperties(const TagLib::PropertyMap& savedProperties, QJsonObject& song)
 {
 	if (savedProperties.isEmpty()) {
@@ -103,16 +99,16 @@ void readGenericProperties(const TagLib::PropertyMap& savedProperties, QJsonObje
 	if (savedProperties.contains("TITLE")) {
 		//result->add(Property::Title, TStringToQString(savedProperties["TITLE"].toString()).trimmed());
 		//song.insert("title", convertList(savedProperties["TITLE"]));
-		song.insert("title", convertString(savedProperties["TITLE"]));
+		song.insert("title", TStringToQString(savedProperties["TITLE"].toString()).trimmed());
 	}
 	if (savedProperties.contains("ALBUM")) {
 		//result->add(Property::Album, TStringToQString(savedProperties["ALBUM"].toString()).trimmed());
 		//song.insert("album", convertList(savedProperties["ALBUM"]));
-		song.insert("album", convertString(savedProperties["ALBUM"]));
+		song.insert("album", TStringToQString(savedProperties["ALBUM"].toString()).trimmed());
 	}
 	if (savedProperties.contains("COMMENT")) {
 		//result->add(Property::Comment, TStringToQString(savedProperties["COMMENT"].toString()).trimmed());
-		song.insert("comment", convertString(savedProperties["COMMENT"]));
+		song.insert("comment", TStringToQString(savedProperties["COMMENT"].toString()).trimmed());
 	}
 	if (savedProperties.contains("TRACKNUMBER")) {
 		//result->add(Property::TrackNumber, savedProperties["TRACKNUMBER"].toString().toInt());
@@ -141,39 +137,39 @@ void readGenericProperties(const TagLib::PropertyMap& savedProperties, QJsonObje
 	}
 	if (savedProperties.contains("LOCATION")) {
 		//result->add(Property::Location, TStringToQString(savedProperties["LOCATION"].toString()).trimmed());
-		song.insert("location", convertString(savedProperties["LOCATION"]));
+		song.insert("location", TStringToQString(savedProperties["LOCATION"].toString()).trimmed());
 	}
 	if (savedProperties.contains("LANGUAGE")) {
 		//result->add(Property::Language, TStringToQString(savedProperties["LANGUAGE"].toString()).trimmed());
-		song.insert("language", convertString(savedProperties["LANGUAGE"]));
+		song.insert("language", TStringToQString(savedProperties["LANGUAGE"].toString()).trimmed());
 	}
 	if (savedProperties.contains("LICENSE")) {
 		//result->add(Property::License, TStringToQString(savedProperties["LICENSE"].toString()).trimmed());
-		song.insert("license", convertString(savedProperties["LICENSE"]));
+		song.insert("license", TStringToQString(savedProperties["LICENSE"].toString()).trimmed());
 	}
 	if (savedProperties.contains("PUBLISHER")) {
 		//result->add(Property::Publisher, TStringToQString(savedProperties["PUBLISHER"].toString()).trimmed());
-		song.insert("publisher", convertString(savedProperties["PUBLISHER"]));
+		song.insert("publisher", TStringToQString(savedProperties["PUBLISHER"].toString()).trimmed());
 	}
 	if (savedProperties.contains("COPYRIGHT")) {
 		//result->add(Property::Copyright, TStringToQString(savedProperties["COPYRIGHT"].toString()).trimmed());
-		song.insert("copyright", convertString(savedProperties["COPYRIGHT"]));
+		song.insert("copyright", TStringToQString(savedProperties["COPYRIGHT"].toString()).trimmed());
 	}
 	if (savedProperties.contains("LABEL")) {
 		//result->add(Property::Label, TStringToQString(savedProperties["LABEL"].toString()).trimmed());
-		song.insert("label", convertString(savedProperties["LABEL"]));
+		song.insert("label", TStringToQString(savedProperties["LABEL"].toString()).trimmed());
 	}
 	if (savedProperties.contains("ENSEMBLE")) {
 		//result->add(Property::Ensemble, TStringToQString(savedProperties["ENSEMBLE"].toString()).trimmed());
-		song.insert("ensemble", convertString(savedProperties["ENSEMBLE"]));
+		song.insert("ensemble", TStringToQString(savedProperties["ENSEMBLE"].toString()).trimmed());
 	}
 	if (savedProperties.contains("COMPILATION")) {
 		//result->add(Property::Compilation, TStringToQString(savedProperties["COMPILATION"].toString()).trimmed());
-		song.insert("compilation", convertString(savedProperties["COMPILATION"]));
+		song.insert("compilation", TStringToQString(savedProperties["COMPILATION"].toString()).trimmed());
 	}
 	if (savedProperties.contains("LYRICS")) {
 		//result->add(Property::Lyrics, TStringToQString(savedProperties["LYRICS"].toString()).trimmed());
-		song.insert("lyrics", convertString(savedProperties["LYRICS"]));
+		song.insert("lyrics", TStringToQString(savedProperties["LYRICS"].toString()).trimmed());
 	}
 	if (savedProperties.contains("ARTIST")) {
 		song.insert("artist", convertList(savedProperties["ARTIST"]));
@@ -281,14 +277,14 @@ void extractId3Tags(TagLib::ID3v2::Tag* Id3Tags, QJsonObject& song)
 	lstID3v2 = Id3Tags->frameListMap()["TPUB"];
 	if (!lstID3v2.isEmpty()) {
 		//result->add(Property::Publisher, TStringToQString(lstID3v2.front()->toString()));
-		id3.insert("publisher", convertString(lstID3v2.front()->toString()));
+		id3.insert("publisher", TStringToQString(lstID3v2.front()->toString()));
 	}
 
 	// Compilation.
 	lstID3v2 = Id3Tags->frameListMap()["TCMP"];
 	if (!lstID3v2.isEmpty()) {
 		//result->add(Property::Compilation, TStringToQString(lstID3v2.front()->toString()));
-		id3.insert("compilation", convertString(lstID3v2.front()->toString()));
+		id3.insert("compilation", TStringToQString(lstID3v2.front()->toString()));
 	}
 
 	/*
