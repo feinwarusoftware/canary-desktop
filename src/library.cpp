@@ -1,10 +1,35 @@
 #include "library.h"
+#include "taglibextractor.h"
 
 #include <QDebug>
+#include <QMimeDatabase>
 
 CCover cover;
+TagLibExtractor extractor;
 
 QList<QString> supportedFormats = { "mp3", "ogg", "wav", "aiff", "flac", "wv", "opus", "m4a", "caf", "ape", "aac", "ac3", "tta" };
+
+const QStringList supportedMimeTypes = {
+	  QStringLiteral("audio/flac"),
+		QStringLiteral("audio/mp4"),
+		QStringLiteral("audio/mpeg"),
+		QStringLiteral("audio/mpeg3"),
+		QStringLiteral("audio/ogg"),
+		QStringLiteral("audio/opus"),
+		QStringLiteral("audio/speex"),
+		QStringLiteral("audio/wav"),
+		QStringLiteral("audio/x-aiff"),
+		QStringLiteral("audio/x-aifc"),
+		QStringLiteral("audio/x-ape"),
+		QStringLiteral("audio/x-mpeg"),
+		QStringLiteral("audio/x-ms-wma"),
+		QStringLiteral("audio/x-musepack"),
+		QStringLiteral("audio/x-opus+ogg"),
+		QStringLiteral("audio/x-speex+ogg"),
+		QStringLiteral("audio/x-vorbis+ogg"),
+		QStringLiteral("audio/x-wav"),
+		QStringLiteral("audio/x-wavpack"),
+};
 
 Library::Library(QObject* parent) : QObject(parent) {
 
@@ -235,19 +260,6 @@ void Library::updateLib(QStringList dirPath) {
 	fileListJson.close();
 }
 
-void Library::getRating(TagLib::ID3v2::Tag* tag, QJsonObject& song) {
-	TagLib::ID3v2::PopularimeterFrame* frame = GetPOPMFrameFromTag(tag);
-	int rating = 0;
-	if (frame->rating()) {
-		rating = frame->rating();
-	}
-	else {
-		frame->setRating(0);
-	}
-
-	song.insert("rating", rating);
-}
-
 void Library::checkTags(const TagLib::FileRef& fr, QJsonObject& song) {
 
 	song.insert("lengthInSeconds", fr.audioProperties()->lengthInSeconds());
@@ -261,7 +273,6 @@ void Library::checkTags(const TagLib::FileRef& fr, QJsonObject& song) {
 	{
 		if (file->ID3v2Tag())
 		{
-			getRating(file->ID3v2Tag(), song);
 			loopForTags(file->ID3v2Tag()->properties(), song);
 		}
 		else if (file->APETag())
@@ -273,7 +284,6 @@ void Library::checkTags(const TagLib::FileRef& fr, QJsonObject& song) {
 	{
 		if (file->ID3v2Tag())
 		{
-			getRating(file->ID3v2Tag(true), song);
 			loopForTags(file->ID3v2Tag()->properties(), song);
 		}
 	}
@@ -306,7 +316,6 @@ void Library::checkTags(const TagLib::FileRef& fr, QJsonObject& song) {
 	else if (TagLib::RIFF::WAV::File* file = dynamic_cast<TagLib::RIFF::WAV::File*>(fr.file())) {
 		if (file->ID3v2Tag())
 		{
-			getRating(file->ID3v2Tag(), song);
 			loopForTags(file->ID3v2Tag()->properties(), song);
 		}
 	}
@@ -336,7 +345,9 @@ void Library::updateSong(int pos) {
 	QJsonObject s;
 
 	s.insert("dir", fileDirSring); //TODO: pass this to check string (both here and create)
-	checkTags(fr, s);
+	QMimeDatabase db;
+	QMimeType type = db.mimeTypeForFile(fileName);
+	extractor.extract(s, fileName, type);
 
 	libraryArray[pos] = s;
 
@@ -346,38 +357,4 @@ void Library::updateSong(int pos) {
 	QJsonDocument libJSON(libraryArray);
 	libraryJSONfile.write(libJSON.toJson());
 	libraryJSONfile.close();
-}
-
-/* This file is part of Clementine.
-   Copyright 2013, David Sansome <me@davidsansome.com>
-
-   Clementine is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   Clementine is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with Clementine.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-TagLib::ID3v2::PopularimeterFrame* Library::GetPOPMFrameFromTag(
-	TagLib::ID3v2::Tag* tag) {
-	TagLib::ID3v2::PopularimeterFrame* frame = nullptr;
-
-	const TagLib::ID3v2::FrameListMap& map = tag->frameListMap();
-	if (!map["POPM"].isEmpty()) {
-		frame =
-			dynamic_cast<TagLib::ID3v2::PopularimeterFrame*>(map["POPM"].front());
-	}
-
-	if (!frame) {
-		frame = new TagLib::ID3v2::PopularimeterFrame();
-		tag->addFrame(frame);
-	}
-	return frame;
 }

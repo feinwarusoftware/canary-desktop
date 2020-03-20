@@ -21,26 +21,21 @@
 #ifndef TAGLIBEXTRACTOR_H
 #define TAGLIBEXTRACTOR_H
 
-#include "extractorplugin.h"
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QFile>
+#include <QMimeType>
 
-namespace KFileMetaData
-{
-
-class TagLibExtractor : public ExtractorPlugin
+class TagLibExtractor : public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.kf5.kfilemetadata.ExtractorPlugin"
-                      FILE "taglibextractor.json")
-    Q_INTERFACES(KFileMetaData::ExtractorPlugin)
 
 public:
     explicit TagLibExtractor(QObject* parent = nullptr);
 
-    void extract(ExtractionResult* result) override;
-    QStringList mimetypes() const override;
-
+    void extract(QJsonObject& song, QByteArray fileName, QMimeType type);
+    QStringList mimetypes() const;
 };
-
-}
 
 #endif // TAGLIBEXTRACTOR_H

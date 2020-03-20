@@ -15,7 +15,9 @@ int main(int argc, char* argv[])
     QtWebEngine::initialize();
     QGuiApplication app(argc, argv);
 
-    QQmlApplicationEngine engine;
+    Library library;
+
+    /*QQmlApplicationEngine engine;
 
     Player player;
     Library library;
@@ -38,19 +40,19 @@ int main(int argc, char* argv[])
         }
     );
 
-    player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
+    player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.*/
+
+    library.updateSong(4908);
 
     //QJsonObject coiso = { "title": ["eae"] , "albumid" : 1, "artist" : ["salve"] };
-    QJsonArray e = { "eae" };
+    /*QJsonArray e = { "eae" };
     QJsonArray ar = { "salve" };
     QJsonObject coiso
     {
         {"title", e},
         {"artist", ar},
         {"albumid", 1}
-    };
-
-    library.updateSong(4908);
+    };*/
 
     /*QStringList dirs = { u8"G:/Músicas" };
     library.updateLib(dirs);*/
