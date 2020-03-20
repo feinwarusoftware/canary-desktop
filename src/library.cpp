@@ -2,10 +2,11 @@
 #include "taglibextractor.h"
 
 #include <QDebug>
-#include <QMimeDatabase>
 
 CCover cover;
 TagLibExtractor extractor;
+
+QMimeDatabase db;
 
 QList<QString> supportedFormats = { "mp3", "ogg", "wav", "aiff", "flac", "wv", "opus", "m4a", "caf", "ape", "aac", "ac3", "tta" };
 
@@ -45,7 +46,7 @@ bool Library::searchDir(QStringList dirPath) {
 			//qDebug() << it.next();
 
 			QFileInfo fileInfo(it.next());
-			if (fileInfo.isFile() && supportedFormats.indexOf(fileInfo.suffix()) != -1) { //if it's a file / if it's a supported file
+			if (fileInfo.isFile() && supportedMimeTypes.indexOf(getMime(fileInfo.absoluteFilePath().toUtf8()).name()) != -1) { //if it's a file / if it's a supported file
 				qDebug() << fileInfo.absoluteFilePath();
 				jsonArr.append(fileInfo.absoluteFilePath());
 			}
@@ -113,7 +114,8 @@ void Library::createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idN
 
 		song.insert("dir", fileDirString); //write the file directory into the library, even if it has no tagss
 		//checks for format-specific tags - will be replaced with the normal ones if repeated
-		checkTags(fr, song);
+		//checkTags(fr, song);
+		extractor.extract(song, fr, getMime(fileName));
 
 		for (QJsonValueRef& sValue : infoArray) {
 			if (sValue.toObject().value("album") == song.value("album") && sValue.toObject().value("date") == song.value("date")) {
@@ -146,21 +148,6 @@ void Library::createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idN
 	}
 }
 
-void Library::loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj) {
-	for (auto it = sMap.begin(); it != sMap.end(); it++) {
-
-		QJsonArray propertyValues;
-
-		for (int i = 0; i < it->second.size(); i++) {
-			QJsonValue val(QString::fromStdWString(it->second[i].toWString()));
-
-			propertyValues.append(val);
-		}
-
-		songObj.insert(QString::fromStdWString(it->first.toWString()).toLower(), propertyValues);
-	}
-}
-
 QVariantList Library::loadLib() {
 	QFile libJSON("./userdata/library.json");
 	bool readJSON = libJSON.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -184,7 +171,7 @@ void Library::updateLib(QStringList dirPath) {
 
 		while (it.hasNext()) {
 			QFileInfo fileInfo(it.next());
-			if (fileInfo.isFile() && supportedFormats.indexOf(fileInfo.suffix()) != -1) { //if it's a file / if it's a supported file
+			if (fileInfo.isFile() && supportedMimeTypes.indexOf(getMime(fileInfo.absoluteFilePath().toUtf8()).name()) != -1) {
 				if (!listArray.contains(fileInfo.absoluteFilePath())) {
 					newItems.append(fileInfo.absoluteFilePath());
 				}
@@ -260,77 +247,6 @@ void Library::updateLib(QStringList dirPath) {
 	fileListJson.close();
 }
 
-void Library::checkTags(const TagLib::FileRef& fr, QJsonObject& song) {
-
-	song.insert("lengthInSeconds", fr.audioProperties()->lengthInSeconds());
-	song.insert("bitrate", fr.audioProperties()->bitrate());
-	song.insert("sampleRate", fr.audioProperties()->sampleRate());
-	song.insert("channels", fr.audioProperties()->channels());
-
-	qDebug() << "SALVE SALVE";
-
-	if (TagLib::MPEG::File* file = dynamic_cast<TagLib::MPEG::File*>(fr.file()))
-	{
-		if (file->ID3v2Tag())
-		{
-			loopForTags(file->ID3v2Tag()->properties(), song);
-		}
-		else if (file->APETag())
-		{
-			loopForTags(file->APETag()->properties(), song);
-		}
-	}
-	else if (TagLib::FLAC::File* file = dynamic_cast<TagLib::FLAC::File*>(fr.file()))
-	{
-		if (file->ID3v2Tag())
-		{
-			loopForTags(file->ID3v2Tag()->properties(), song);
-		}
-	}
-	else if (TagLib::MP4::File* file = dynamic_cast<TagLib::MP4::File*>(fr.file()))
-	{
-		if (file->tag()) {
-			loopForTags(file->tag()->properties(), song);
-		}
-	}
-	else if (TagLib::ASF::File* file = dynamic_cast<TagLib::ASF::File*>(fr.file()))
-	{
-		if (file->tag()) {
-			loopForTags(file->tag()->properties(), song);
-		}
-	}
-	else if (TagLib::APE::File* file = dynamic_cast<TagLib::APE::File*>(fr.file()))
-	{
-		if (file->APETag())
-		{
-			loopForTags(file->APETag()->properties(), song);
-		}
-	}
-	else if (TagLib::MPC::File* file = dynamic_cast<TagLib::MPC::File*>(fr.file()))
-	{
-		if (file->APETag())
-		{
-			loopForTags(file->APETag()->properties(), song);
-		}
-	}
-	else if (TagLib::RIFF::WAV::File* file = dynamic_cast<TagLib::RIFF::WAV::File*>(fr.file())) {
-		if (file->ID3v2Tag())
-		{
-			loopForTags(file->ID3v2Tag()->properties(), song);
-		}
-	}
-	else if (TagLib::RIFF::AIFF::File* file = dynamic_cast<TagLib::RIFF::AIFF::File*>(fr.file())) {
-		if (file->tag())
-		{
-			loopForTags(file->tag()->properties(), song);
-		}
-	}
-
-	if (fr.tag() != NULL) {
-		loopForTags(fr.tag()->properties(), song);
-	}
-}
-
 void Library::updateSong(int pos) {
 	//read file here - int pos apenas
 	QFile libraryJSONfile("./userdata/library.json");
@@ -347,7 +263,10 @@ void Library::updateSong(int pos) {
 	s.insert("dir", fileDirSring); //TODO: pass this to check string (both here and create)
 	QMimeDatabase db;
 	QMimeType type = db.mimeTypeForFile(fileName);
-	extractor.extract(s, fileName, type);
+
+	TagLib::FileName fn = fileName.toStdString().c_str();
+
+	extractor.extract(s, fr, getMime(fileName));
 
 	libraryArray[pos] = s;
 
@@ -357,4 +276,8 @@ void Library::updateSong(int pos) {
 	QJsonDocument libJSON(libraryArray);
 	libraryJSONfile.write(libJSON.toJson());
 	libraryJSONfile.close();
+}
+
+QMimeType Library::getMime(QByteArray fn) {
+	return db.mimeTypeForFile(fn);
 }

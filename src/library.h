@@ -10,6 +10,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QFile>
+#include <QMimeDatabase>
 
 #include <taglib/fileref.h>
 #include <taglib/apefile.h>
@@ -48,9 +49,8 @@ public:
 	Q_INVOKABLE void updateSong(int pos);
 
 private:
-	void checkTags(const TagLib::FileRef& fr, QJsonObject& song);
-	void loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj);
 	void createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idNumber);
+	QMimeType getMime(QByteArray fn);
 };
 
 #endif //LIBRARY_H

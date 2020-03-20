@@ -42,7 +42,9 @@ int main(int argc, char* argv[])
 
     player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.*/
 
-    library.updateSong(4908);
+    QStringList dirs = { u8"G:/Músicas" };
+    //library.searchDir(dirs);
+    library.createLib();
 
     //QJsonObject coiso = { "title": ["eae"] , "albumid" : 1, "artist" : ["salve"] };
     /*QJsonArray e = { "eae" };

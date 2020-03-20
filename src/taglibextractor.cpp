@@ -22,6 +22,7 @@
 // Taglib includes
 #include <taglib/taglib.h>
 #include <taglib/tag.h>
+#include <taglib/tfile.h>
 #include <taglib/tfilestream.h>
 #include <taglib/tpropertymap.h>
 #include <taglib/aifffile.h>
@@ -49,38 +50,16 @@ TagLibExtractor::TagLibExtractor(QObject* parent) : QObject(parent) {
 
 }
 
-const QStringList supportedMimeTypes = {
-	  QStringLiteral("audio/flac"),
-		QStringLiteral("audio/mp4"),
-		QStringLiteral("audio/mpeg"),
-		QStringLiteral("audio/mpeg3"),
-		QStringLiteral("audio/ogg"),
-		QStringLiteral("audio/opus"),
-		QStringLiteral("audio/speex"),
-		QStringLiteral("audio/wav"),
-		QStringLiteral("audio/x-aiff"),
-		QStringLiteral("audio/x-aifc"),
-		QStringLiteral("audio/x-ape"),
-		QStringLiteral("audio/x-mpeg"),
-		QStringLiteral("audio/x-ms-wma"),
-		QStringLiteral("audio/x-musepack"),
-		QStringLiteral("audio/x-opus+ogg"),
-		QStringLiteral("audio/x-speex+ogg"),
-		QStringLiteral("audio/x-vorbis+ogg"),
-		QStringLiteral("audio/x-wav"),
-		QStringLiteral("audio/x-wavpack"),
-};
-
 
 void extractAudioProperties(TagLib::File* file, QJsonObject& song)
 {
 	TagLib::AudioProperties* audioProp = file->audioProperties();
 	if (audioProp) {
-		if (audioProp->length()) {
+		/*if (audioProp->length()) {
 			// What about the xml duration?
 			//result->add(Property::Duration, audioProp->length());
 			song.insert("length", audioProp->length());
-		}
+		}*/
 
 		if (audioProp->lengthInSeconds()) {
 			song.insert("lengthInSeconds", audioProp->lengthInSeconds());
@@ -420,110 +399,118 @@ void extractAsfTags(TagLib::ASF::Tag* asfTags, QJsonObject& song)
 	}
 }
 
-void TagLibExtractor::extract(QJsonObject& song, QByteArray fileName, QMimeType type)
+/*
+Salies comment: this extractor function from the KDE project is flawed because it filters tags by file format, which is an innacurate approach.
+I've seen, for example, FLAC files with OPUS tags. But since tags are a mess, it's actually a pretty good filter approach. Generic tags make up for that.
+I might update that aspect in the future, maybe testing the file for each tag fomrat (which would make the function even slower, but idk).
+*/
+void TagLibExtractor::extract(QJsonObject& song, const TagLib::FileRef& fr, QMimeType type)
 {
-	const char* fn = fileName.toStdString().c_str();
+	//const char* fn = fileName.toStdString().c_str();
+	/*QByteArray fileName = QFile::encodeName(fns); //using QFile to encode dir so it's readable to TagLib
+
+	TagLib::FileName fn = fileName.toStdString().c_str();*/
+	TagLib::FileName fn = "oi";
 	QString mimeType = type.name();
 
 	qDebug() << mimeType;
 
 	if (mimeType == QLatin1String("audio/mpeg") || mimeType == QLatin1String("audio/mpeg3") || mimeType == QLatin1String("audio/x-mpeg")) {
-		TagLib::MPEG::File file(fn, TagLib::ID3v2::FrameFactory::instance(), true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
-			if (file.hasID3v2Tag()) {
-				extractId3Tags(file.ID3v2Tag(), song);
-				//extract cover, return qimage, save qimage (nesse caso, outros mostrar por exemplo)
+		//TagLib::MPEG::File file(fn, TagLib::ID3v2::FrameFactory::instance(), true);
+		TagLib::MPEG::File* file = dynamic_cast<TagLib::MPEG::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
+			if (file->hasID3v2Tag()) {
+				extractId3Tags(file->ID3v2Tag(), song);
 			}
 		}
 	}
 	else if (mimeType == QLatin1String("audio/x-aiff") || mimeType == QLatin1String("audio/x-aifc")) {
-		TagLib::RIFF::AIFF::File file(fn, true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
-			if (file.hasID3v2Tag()) {
-				extractId3Tags(file.tag(), song);
+		TagLib::RIFF::AIFF::File* file = dynamic_cast<TagLib::RIFF::AIFF::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
+			if (file->hasID3v2Tag()) {
+				extractId3Tags(file->tag(), song);
 			}
 		}
 	}
 	else if (mimeType == QLatin1String("audio/wav") || mimeType == QLatin1String("audio/x-wav")) {
-		TagLib::RIFF::WAV::File file(fn, true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
-			if (file.hasID3v2Tag()) {
-				extractId3Tags(file.tag(), song);
+		TagLib::RIFF::WAV::File* file = dynamic_cast<TagLib::RIFF::WAV::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
+			if (file->hasID3v2Tag()) {
+				extractId3Tags(file->tag(), song);
 			}
 		}
 	}
 	else if (mimeType == QLatin1String("audio/x-musepack")) {
-		TagLib::MPC::File file(fn, true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
+		TagLib::MPC::File* file = dynamic_cast<TagLib::MPC::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
 		}
 	}
 	else if (mimeType == QLatin1String("audio/x-ape")) {
-		TagLib::APE::File file(fn, true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
+		TagLib::APE::File* file = dynamic_cast<TagLib::APE::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
 		}
 	}
 	else if (mimeType == QLatin1String("audio/x-wavpack")) {
-		TagLib::WavPack::File file(fn, true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
+		TagLib::WavPack::File* file = dynamic_cast<TagLib::WavPack::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
 		}
 	}
 	else if (mimeType == QLatin1String("audio/mp4")) {
-		TagLib::MP4::File file(fn, true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
-			extractMp4Tags(file.tag(), song);
+		TagLib::MP4::File* file = dynamic_cast<TagLib::MP4::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
+			extractMp4Tags(file->tag(), song);
 		}
 	}
 	else if (mimeType == QLatin1String("audio/flac")) {
-		TagLib::FLAC::File file(fn, TagLib::ID3v2::FrameFactory::instance(), true);
-		if (file.isValid()) {
-			//qDebug() << "é flac válido!";
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
+		TagLib::FLAC::File* file = dynamic_cast<TagLib::FLAC::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
 		}
 	}
 	else if (mimeType == QLatin1String("audio/ogg") || mimeType == QLatin1String("audio/x-vorbis+ogg")) {
-		TagLib::Ogg::Vorbis::File file(fn, true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
+		TagLib::Ogg::Vorbis::File* file = dynamic_cast<TagLib::Ogg::Vorbis::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
 		}
 	}
 	else if (mimeType == QLatin1String("audio/opus") || mimeType == QLatin1String("audio/x-opus+ogg")) {
-		TagLib::Ogg::Opus::File file(fn, true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
+		TagLib::Ogg::Opus::File* file = dynamic_cast<TagLib::Ogg::Opus::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
 		}
 	}
 	else if (mimeType == QLatin1String("audio/speex") || mimeType == QLatin1String("audio/x-speex+ogg")) {
-		TagLib::Ogg::Speex::File file(fn, true);
+		TagLib::Ogg::Speex::File* file = dynamic_cast<TagLib::Ogg::Speex::File*>(fr.file());
 		// Workaround for buggy taglib:
 		// isValid() returns true for invalid files, but XiphComment* tag() returns a nullptr
-		if (file.isValid() && file.tag()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
+		if (file->isValid() && file->tag()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
 		}
 	}
 	else if (mimeType == QLatin1String("audio/x-ms-wma")) {
-		TagLib::ASF::File file(fn, true);
-		if (file.isValid()) {
-			extractAudioProperties(&file, song);
-			readGenericProperties(file.properties(), song);
-			extractAsfTags(file.tag(), song);
+		TagLib::ASF::File* file = dynamic_cast<TagLib::ASF::File*>(fr.file());
+		if (file->isValid()) {
+			extractAudioProperties(file, song);
+			readGenericProperties(file->properties(), song);
+			extractAsfTags(file->tag(), song);
 		}
 	}
 }

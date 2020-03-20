@@ -27,6 +27,8 @@
 #include <QFile>
 #include <QMimeType>
 
+#include <taglib/fileref.h>
+
 class TagLibExtractor : public QObject
 {
     Q_OBJECT
@@ -34,7 +36,7 @@ class TagLibExtractor : public QObject
 public:
     explicit TagLibExtractor(QObject* parent = nullptr);
 
-    void extract(QJsonObject& song, QByteArray fileName, QMimeType type);
+    void extract(QJsonObject& song, const TagLib::FileRef& fr, QMimeType type);
     QStringList mimetypes() const;
 };
 
