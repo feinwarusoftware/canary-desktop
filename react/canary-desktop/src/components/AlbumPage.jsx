@@ -36,7 +36,7 @@ function AlbumPage({location, playerObject}){
     const tracks = data.tracks.map((song, index) =>{
         albumLength = albumLength + song.lengthInSeconds;
 
-        return(<Song number={index + 1} name={song.title[0]} length={song.lengthInSeconds} songCallback={()=> songCall(index, song.albumid, data.tracks)} 
+        return(<Song number={index + 1} name={song.title} length={song.lengthInSeconds} songCallback={()=> {songCall(index, song.albumid, data.tracks);}} 
         //no need to compare albums cuz there are not two songs with the same dir
         nowPlaying={nowPlayingSong === song.dir ? true : false}>
         </Song>   
@@ -50,7 +50,7 @@ function AlbumPage({location, playerObject}){
                 <div className="album-databox">
                     <span className="album-databox-name">{data.name}</span>
                     <span>by {data.artist}</span>
-                    <span>{data.date ? `${data.date} - ` : ""}{data.tracks.length} songs - {Math.floor(albumLength / 60)}min</span>
+                    <span>{data.date ? `${new Date(data.date).getFullYear()} - ` : ""}{data.tracks.length} songs - {Math.floor(albumLength / 60)}min</span>
                     <button onClick={()=>
                         playerObject.playerClass.getShuffle((shuffle)=>{
                             let s;

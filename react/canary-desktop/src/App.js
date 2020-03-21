@@ -27,7 +27,7 @@ function App({playerObject, libObject, lastfmObject, location}) {
           </Switch>
         </div>
       </Router>
-      <Controls playerObject={playerObject}></Controls>
+      <Controls playerObject={playerObject} libObject={libObject}></Controls>
     </div>
   );
 }

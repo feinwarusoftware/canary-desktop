@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SkipForward, SkipBack, Volume2, VolumeX, Repeat, Shuffle } from 'react-feather';
+import Rating from './Rating';
 import PlayButton from './PlayButton';
 import {toMSS} from './UsefulFunctions';
 import '../styles/Controls.css'
 
-function Controls({playerObject}){
+function Controls({playerObject, libObject}){
     const [nowPlayingData, setNowPlayingData] = useState(playerObject.nowPlaying);
 
     const [nowPlayingSongPos, setPos] = useState(0);
@@ -18,6 +19,14 @@ function Controls({playerObject}){
         previousVolume:1,
         value:1
     });
+
+    function changeRating(newRating){
+        libObject.libClass.setRating(newRating * 10, Number(nowPlayingData.index), nowPlayingData).then(()=>{
+            libObject.libClass.updateSong(nowPlayingData.index);
+        });
+
+        setNowPlayingData({...nowPlayingData, rating:newRating})
+    }
 
     useEffect(() => {
         playerObject.setNowPlayingInfo.connect(setNowPlayingData); //TODO: fix weird seekbar when song transition thorugh here
@@ -91,8 +100,10 @@ function Controls({playerObject}){
                 console.log("mousedown")
                 playerObject.isDraggingSeekbar = true;
             }} 
+            />
 
-            /> 
+            <Rating value={nowPlayingData.rating} setRating={changeRating}/>
+
             <div className="volContainer">
                 <div onClick={()=>{
                     if(volume.isMuted){

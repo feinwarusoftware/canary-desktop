@@ -10,6 +10,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QFile>
+#include <QMimeDatabase>
 
 #include <taglib/fileref.h>
 #include <taglib/apefile.h>
@@ -24,16 +25,20 @@
 #include <taglib/mpcfile.h>
 #include <taglib/mpegfile.h>
 #include <taglib/mp4file.h>
+#include <taglib/oggfile.h>
+#include <taglib/opusfile.h>
+#include <taglib/speexfile.h>
 #include <taglib/tag.h>
 #include <taglib/taglib.h>
 #include <taglib/textidentificationframe.h>
 #include <taglib/tstring.h>
 #include <taglib/vorbisfile.h>
 #include <taglib/wavfile.h>
+#include <taglib/wavpackfile.h>
 #include <taglib/aifffile.h>
 #include <taglib/tpropertymap.h>
-
 #include <taglib/infotag.h>
+#include <taglib/popularimeterframe.h>
 
 #include "covers.h"
 
@@ -45,11 +50,12 @@ public:
 	bool createLib();
 	Q_INVOKABLE QVariantList loadLib();
 	Q_INVOKABLE void updateLib(QStringList dirPath);
-	Q_INVOKABLE void updateSong(int pos, QJsonObject song);
+	Q_INVOKABLE void updateSong(int pos);
+	Q_INVOKABLE void setRating(int rating, int pos, QJsonValue data);
 
 private:
-	void loopForTags(TagLib::PropertyMap sMap, QJsonObject& songObj);
 	void createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idNumber);
+	QMimeType getMime(QByteArray fn);
 };
 
 #endif //LIBRARY_H
