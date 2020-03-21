@@ -118,6 +118,7 @@ void Library::createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idN
 		extractor.extract(song, fr, getMime(fileName));
 
 		for (QJsonValueRef& sValue : infoArray) {
+			//TODO: there might be a glitch here with songs with weird tags
 			if (sValue.toObject().value("album") == song.value("album") && sValue.toObject().value("date") == song.value("date")) {
 
 				if (sValue.toObject().value("albumartist") == song.value("albumartist")) { //if it has the same album artist, it's the same album
@@ -261,8 +262,6 @@ void Library::updateSong(int pos) {
 	QJsonObject s;
 
 	s.insert("dir", fileDirSring); //TODO: pass this to check string (both here and create)
-	QMimeDatabase db;
-	QMimeType type = db.mimeTypeForFile(fileName);
 
 	TagLib::FileName fn = fileName.toStdString().c_str();
 
@@ -276,6 +275,26 @@ void Library::updateSong(int pos) {
 	QJsonDocument libJSON(libraryArray);
 	libraryJSONfile.write(libJSON.toJson());
 	libraryJSONfile.close();
+}
+
+void Library::setRating(int rating, int pos, QJsonValue data) {
+	QJsonObject s = data.toObject();
+
+	QString fileDirString = s.value("dir").toString();
+	QByteArray fileName = QFile::encodeName(fileDirString);
+	QString mimeType = getMime(fileName).name();
+
+	TagLib::FileRef fr(fileName.toStdString().c_str());
+
+	TagLib::PropertyMap p = fr.file()->properties();
+
+	const TagLib::StringList l = { TagLib::String(std::to_string(rating)) };
+
+	p.replace("RATING", l);
+
+	fr.file()->setProperties(p);
+
+	fr.file()->save();
 }
 
 QMimeType Library::getMime(QByteArray fn) {

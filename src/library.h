@@ -25,12 +25,16 @@
 #include <taglib/mpcfile.h>
 #include <taglib/mpegfile.h>
 #include <taglib/mp4file.h>
+#include <taglib/oggfile.h>
+#include <taglib/opusfile.h>
+#include <taglib/speexfile.h>
 #include <taglib/tag.h>
 #include <taglib/taglib.h>
 #include <taglib/textidentificationframe.h>
 #include <taglib/tstring.h>
 #include <taglib/vorbisfile.h>
 #include <taglib/wavfile.h>
+#include <taglib/wavpackfile.h>
 #include <taglib/aifffile.h>
 #include <taglib/tpropertymap.h>
 #include <taglib/infotag.h>
@@ -47,6 +51,7 @@ public:
 	Q_INVOKABLE QVariantList loadLib();
 	Q_INVOKABLE void updateLib(QStringList dirPath);
 	Q_INVOKABLE void updateSong(int pos);
+	Q_INVOKABLE void setRating(int rating, int pos, QJsonValue data);
 
 private:
 	void createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idNumber);

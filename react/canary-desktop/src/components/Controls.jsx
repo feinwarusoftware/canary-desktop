@@ -4,7 +4,7 @@ import PlayButton from './PlayButton';
 import {toMSS} from './UsefulFunctions';
 import '../styles/Controls.css'
 
-function Controls({playerObject}){
+function Controls({playerObject, libObject}){
     const [nowPlayingData, setNowPlayingData] = useState(playerObject.nowPlaying);
 
     const [nowPlayingSongPos, setPos] = useState(0);
@@ -93,6 +93,14 @@ function Controls({playerObject}){
             }} 
 
             /> 
+
+            <button onClick={()=>{
+                //console.log(nowPlayingData.index);
+                libObject.libClass.setRating(50, Number(nowPlayingData.index), nowPlayingData).then(()=>{
+                    libObject.libClass.updateSong(nowPlayingData.index);
+                });
+            }}>BOTÃO DO RATING</button>
+
             <div className="volContainer">
                 <div onClick={()=>{
                     if(volume.isMuted){

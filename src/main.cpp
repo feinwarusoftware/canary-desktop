@@ -15,8 +15,6 @@ int main(int argc, char* argv[])
     QtWebEngine::initialize();
     QGuiApplication app(argc, argv);
 
-    Library library;
-
     QQmlApplicationEngine engine;
 
     Player player;
@@ -26,8 +24,6 @@ int main(int argc, char* argv[])
     engine.rootContext()->setContextProperty("player", &player); //exposes the C++ classes to QML
     engine.rootContext()->setContextProperty("library", &library);
     engine.rootContext()->setContextProperty("lastfm", &lastfm);
-
-    //QObject::connect(player, &Player::loadSong, someFunction);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml"))); //loads the QML interface
 
@@ -42,18 +38,7 @@ int main(int argc, char* argv[])
 
     player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
 
-    //QJsonObject coiso = { "title": ["eae"] , "albumid" : 1, "artist" : ["salve"] };
-    /*QJsonArray e = { "eae" };
-    QJsonArray ar = { "salve" };
-    QJsonObject coiso
-    {
-        {"title", e},
-        {"artist", ar},
-        {"albumid", 1}
-    };*/
-
-    /*QStringList dirs = { u8"G:/Músicas" };
-    library.updateLib(dirs);*/
+    library.updateSong(221);
 
     /*
         acknowledgment: I know passing the QML root as a pointer so the class can deal with it is a terrible workaround - I should be using pointers. thing is, they don't work properly

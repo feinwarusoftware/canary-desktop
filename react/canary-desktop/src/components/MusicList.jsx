@@ -15,9 +15,9 @@ function MusicList({libObject}) {
                 let loadedAlbums = [];
                 let albums = {};
         
-                res.forEach(function(song){
+                res.forEach(function(song, index){
                     if(loadedAlbums.includes(song.albumid)){
-                        albums[song.albumid].tracks.push(song);
+                        albums[song.albumid].tracks.push({...song, index});
                         return; 
                     }
         
@@ -29,7 +29,7 @@ function MusicList({libObject}) {
                     };
         
                     if(song.album){
-                        albums[song.albumid]["name"] = song.album[0]
+                        albums[song.albumid]["name"] = song.album
                     }
                     if(song.artist){
                         albums[song.albumid]["artist"] = song.artist[0]
@@ -39,7 +39,7 @@ function MusicList({libObject}) {
                     }
         
                     albums[song.albumid]["tracks"] = [];
-                    albums[song.albumid]["tracks"].push(song);
+                    albums[song.albumid]["tracks"].push({...song, index});
                 });
 
                 const a = Object.keys(albums).map(key => 

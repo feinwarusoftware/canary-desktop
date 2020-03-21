@@ -37,7 +37,6 @@ public:
     explicit TagLibExtractor(QObject* parent = nullptr);
 
     void extract(QJsonObject& song, const TagLib::FileRef& fr, QMimeType type);
-    QStringList mimetypes() const;
 };
 
 #endif // TAGLIBEXTRACTOR_H
