@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SkipForward, SkipBack, Volume2, VolumeX, Repeat, Shuffle } from 'react-feather';
+import ReactStars from 'react-stars'
 import PlayButton from './PlayButton';
 import {toMSS} from './UsefulFunctions';
 import '../styles/Controls.css'
@@ -18,6 +19,15 @@ function Controls({playerObject, libObject}){
         previousVolume:1,
         value:1
     });
+
+    function changeRating(newRating){
+        console.log('oi');
+        libObject.libClass.setRating(newRating * 10, Number(nowPlayingData.index), nowPlayingData).then(()=>{
+            libObject.libClass.updateSong(nowPlayingData.index);
+        });
+
+        setNowPlayingData({...nowPlayingData, rating:newRating})
+    }
 
     useEffect(() => {
         playerObject.setNowPlayingInfo.connect(setNowPlayingData); //TODO: fix weird seekbar when song transition thorugh here
@@ -92,14 +102,15 @@ function Controls({playerObject, libObject}){
                 playerObject.isDraggingSeekbar = true;
             }} 
 
-            /> 
+            />
 
-            <button onClick={()=>{
-                //console.log(nowPlayingData.index);
-                libObject.libClass.setRating(50, Number(nowPlayingData.index), nowPlayingData).then(()=>{
-                    libObject.libClass.updateSong(nowPlayingData.index);
-                });
-            }}>BOTÃO DO RATING</button>
+            <ReactStars
+            count={5}
+            onChange={changeRating}
+            size={24}
+            color1={'#4e4e4e'}
+            color2={'#a7a7a7'} 
+            value={nowPlayingData.rating}/>
 
             <div className="volContainer">
                 <div onClick={()=>{

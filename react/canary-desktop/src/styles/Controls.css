@@ -165,3 +165,7 @@ input[type='range']:hover::-webkit-slider-thumb{
 .repeat, .repeat svg{
     opacity:1!important;
 }
+
+.rating{
+    font-size:24px;
+}
