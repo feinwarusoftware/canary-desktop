@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SkipForward, SkipBack, Volume2, VolumeX, Repeat, Shuffle } from 'react-feather';
-import ReactStars from 'react-stars'
+import Rating from './Rating';
 import PlayButton from './PlayButton';
 import {toMSS} from './UsefulFunctions';
 import '../styles/Controls.css'
@@ -21,7 +21,6 @@ function Controls({playerObject, libObject}){
     });
 
     function changeRating(newRating){
-        console.log('oi');
         libObject.libClass.setRating(newRating * 10, Number(nowPlayingData.index), nowPlayingData).then(()=>{
             libObject.libClass.updateSong(nowPlayingData.index);
         });
@@ -101,16 +100,9 @@ function Controls({playerObject, libObject}){
                 console.log("mousedown")
                 playerObject.isDraggingSeekbar = true;
             }} 
-
             />
 
-            <ReactStars
-            count={5}
-            onChange={changeRating}
-            size={24}
-            color1={'#4e4e4e'}
-            color2={'#a7a7a7'} 
-            value={nowPlayingData.rating}/>
+            <Rating value={nowPlayingData.rating} setRating={changeRating}/>
 
             <div className="volContainer">
                 <div onClick={()=>{

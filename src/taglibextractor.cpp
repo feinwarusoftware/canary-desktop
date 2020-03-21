@@ -133,7 +133,8 @@ void readGenericProperties(const TagLib::PropertyMap& savedProperties, QJsonObje
 		 * with baloo rating with a range from 0 to 10
 		 */
 		//result->add(Property::Rating, savedProperties["RATING"].toString().toInt() / 10);
-		song.insert("rating", savedProperties["RATING"].toString().toInt() / 10);
+		//qDebug() << QString(savedProperties["RATING"].toString().toCString()).toDouble() / 10;
+		song.insert("rating", QString(savedProperties["RATING"].toString().toCString()).toDouble() / 10);
 	}
 	if (savedProperties.contains("LOCATION")) {
 		//result->add(Property::Location, TStringToQString(savedProperties["LOCATION"].toString()).trimmed());
@@ -335,7 +336,7 @@ void extractMp4Tags(TagLib::MP4::Tag* mp4Tags, QJsonObject& song)
 	TagLib::MP4::ItemListMap::Iterator itRating = allTags.find("rate");
 	if (itRating != allTags.end()) {
 		//result->add(Property::Rating, itRating->second.toStringList().toString().toInt() / 10);
-		mp4.insert("rating", itRating->second.toStringList().toString().toInt() / 10);
+		mp4.insert("rating", QString(itRating->second.toStringList().toString().toCString()).toDouble() / 10);
 	}
 
 	song.insert("mp4", mp4);

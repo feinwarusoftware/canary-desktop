@@ -8,7 +8,7 @@ function Queue({playerObject}) {
 
     function printQueue(data) {
         const qS = data.map((song, index) =>
-            <Song key={index} name={song.title[0]} artist={song.artist[0]} album={song.album[0]} length={song.lengthInSeconds} songCallback={()=> playerObject.playerClass.jumpTo(index)} nowPlaying={song.isPlayingNow ? true : false}>
+            <Song key={index} name={song.title} artist={song.artist[0]} album={song.album} length={song.lengthInSeconds} songCallback={()=> playerObject.playerClass.jumpTo(index)} nowPlaying={song.isPlayingNow ? true : false}>
             </Song>
         );
 

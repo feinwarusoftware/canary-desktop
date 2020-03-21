@@ -262,6 +262,7 @@ void Library::updateSong(int pos) {
 	QJsonObject s;
 
 	s.insert("dir", fileDirSring); //TODO: pass this to check string (both here and create)
+	s.insert("albumid", libraryArray[pos].toObject().value("albumid")); //TODO: debug, when album changed (do when tag editor)
 
 	TagLib::FileName fn = fileName.toStdString().c_str();
 
@@ -278,6 +279,7 @@ void Library::updateSong(int pos) {
 }
 
 void Library::setRating(int rating, int pos, QJsonValue data) {
+	qDebug() << rating;
 	QJsonObject s = data.toObject();
 
 	QString fileDirString = s.value("dir").toString();
