@@ -1,4 +1,5 @@
 #include "player.h"
+#include "library.h"
 
 #ifdef _WIN32
 #define PLATFORM 0
@@ -31,7 +32,7 @@ float volume = 1;
 
 struct songStruct {
 	QByteArray dir;
-	QJSValue data;
+	QVariant data;
 	bool isPlayingNow;
 };
 
@@ -150,7 +151,7 @@ void CALLBACK EndSync(HSYNC handle, DWORD channel, DWORD data, void* user)
 	queue[b].isPlayingNow = true;
 
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
-		Q_ARG(QVariant, queue[b].data.toVariant())
+		Q_ARG(QVariant, queue[b].data)
 	);
 }
 
@@ -175,6 +176,15 @@ void Player::init(QObject* r) {
 	BASS_GetInfo(&currentDeviceInfo);
 	mixer = BASS_Mixer_StreamCreate(currentDeviceInfo.freq, currentDeviceInfo.speakers, BASS_MIXER_END | BASS_MIXER_RESUME);
 	BASS_ChannelSetSync(mixer, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, EndSync, 0); // set sync for end
+
+	/*Library library;
+
+	QObject::connect(
+		&library, &Library::songUpdated,
+		[=](int pos, QJsonObject o) {
+		//QMetaObject::invokeMethod(root->findChild<QObject*>("libObject"), "updatePlaying", Q_ARG(int, pos), Q_ARG(QVariant, o));
+		//TODO: UPDATE QUEUE
+	});*/
 }
 
 void Player::insertToQueue(int pos, QJSValue data){
@@ -183,7 +193,7 @@ void Player::insertToQueue(int pos, QJSValue data){
 	songStruct songObj;
 
 	songObj.dir = fileName;
-	songObj.data = data;
+	songObj.data = data.toVariant();
 	songObj.isPlayingNow = false;
 
 	distr = std::uniform_int_distribution<int>(0, queue.size());
@@ -208,7 +218,7 @@ bool Player::loadSong(int pos) {
 	queue[b].isPlayingNow = true;
 
 	QMetaObject::invokeMethod(root, "changeNowPlaying",
-		Q_ARG(QVariant, queue[pos].data.toVariant())
+		Q_ARG(QVariant, queue[pos].data)
 	);
 
 	if (!isPlaying) {
@@ -268,9 +278,6 @@ bool Player::seek(double to) {
 
 	syncpos = BASS_ChannelSeconds2Bytes(mixer, 0.5);
 	timeSync = BASS_ChannelSetSync(mixer, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);
-
-	/*syncpos = BASS_ChannelSeconds2Bytes(mixer, 0.5);
-	timeSync = BASS_ChannelSetSync(mixer, BASS_SYNC_POS | BASS_SYNC_MIXTIME | BASS_SYNC_ONETIME, syncpos, TimerSync, 0);*/
 
 	return fadeOut && seekToPosition && resetMixer && fadeIn;
 }
@@ -393,7 +400,7 @@ QVariantList Player::getQueue() {
 	QVariantList q;
 
 	for (songStruct& s : queue) {
-		QVariantMap d = s.data.toVariant().toMap();
+		QVariantMap d = s.data.toMap();
 		d.insert("isPlayingNow", s.isPlayingNow);
 		q.append(d);
 	}
@@ -414,6 +421,6 @@ bool Player::getShuffle() {
 	return shuffle;
 }
 
-/*
-TODO NOTE: Weird crash when loading test song, jumping (playback finished) the loading an album. I should take a closer look.
-*/
+void Player::updateSongData(int n, QVariant data) {
+	queue[n].data = data;
+}

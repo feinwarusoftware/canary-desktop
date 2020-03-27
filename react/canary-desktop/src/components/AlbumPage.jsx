@@ -1,16 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from "react-router";
-import { Menu, Item, Separator, Submenu, MenuProvider } from 'react-contexify';
+//import { Menu, Item, Separator, Submenu, MenuProvider } from 'react-contexify';
 import Song from './Song';
 import 'react-contexify/dist/ReactContexify.min.css';
 import '../styles/AlbumPage.css'
 
 function AlbumPage({location, playerObject}){
+    //TODO: when song update, check if it still belongs to the album
     const [nowPlayingSong, setNowPlayingSong] = useState(playerObject.nowPlaying.dir);
+    const params = useParams();
+    const data = location.state.data;
 
     function c({dir}){ //TODO: remove this function XD
         setNowPlayingSong(dir);
     }
+
+    /*function changeSong(pos, songObject){
+        if(songObject.albumid !== data.tracks[0].albumid){
+            return;
+        }
+
+        for(let i=0; i < data.tracks.length; i++){
+            if(data.tracks[i].dir === songObject.dir){
+                data.tracks[i] = songObject;
+                break;
+            }
+        }
+    }*/
 
     useEffect(() => {
         playerObject.setNowPlayingInfo.connect(c);
@@ -18,10 +34,7 @@ function AlbumPage({location, playerObject}){
         return() =>{
             playerObject.setNowPlayingInfo.disconnect(c);
         }
-    },  []);
-
-    const params = useParams();
-    const data = location.state.data;
+    });
     let albumLength = 0;
     console.log(data);
 
@@ -36,7 +49,7 @@ function AlbumPage({location, playerObject}){
     const tracks = data.tracks.map((song, index) =>{
         albumLength = albumLength + song.lengthInSeconds;
 
-        return(<Song number={index + 1} name={song.title} length={song.lengthInSeconds} songCallback={()=> {songCall(index, song.albumid, data.tracks);}} 
+        return(<Song key={index} number={index + 1} name={song.title} length={song.lengthInSeconds} songCallback={()=> {songCall(index, song.albumid, data.tracks);}} 
         //no need to compare albums cuz there are not two songs with the same dir
         nowPlaying={nowPlayingSong === song.dir ? true : false}>
         </Song>   
