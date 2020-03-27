@@ -36,9 +36,21 @@ int main(int argc, char* argv[])
         }
     );
 
-    player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
+    QObject::connect(
+        &library, &Library::songUpdated,
+        [=](int pos, QJsonObject o) {
+            Player p;
+            QVariantList queue = p.getQueue();
+            for (int i = 0; i < queue.size(); i++) {
+                QVariant& v = queue[i];
+                QMap<QString, QVariant> m(v.toMap());
+                if (m["isPlayingNow"].toBool()) {
+                    p.updateSongData(i, QVariant(o));
+                }
+            }
+    });
 
-    library.updateSong(221);
+    player.init(engine.rootObjects().first()); //loads BASS, it's plugins, set app render frequency based on the system, etc.
 
     /*
         acknowledgment: I know passing the QML root as a pointer so the class can deal with it is a terrible workaround - I should be using pointers. thing is, they don't work properly

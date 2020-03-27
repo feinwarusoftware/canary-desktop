@@ -166,6 +166,8 @@ input[type='range']:hover::-webkit-slider-thumb{
     opacity:1!important;
 }
 
+/*Awesome work by James Barnett https://codepen.io/jamesbarnett/pen/vlpkh*/
+
 @import url(//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css);
 
 fieldset, label { margin: 0; padding: 0; }

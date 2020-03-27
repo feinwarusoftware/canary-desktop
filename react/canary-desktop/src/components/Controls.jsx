@@ -22,7 +22,7 @@ function Controls({playerObject, libObject}){
 
     function changeRating(newRating){
         libObject.libClass.setRating(newRating * 10, Number(nowPlayingData.index), nowPlayingData).then(()=>{
-            libObject.libClass.updateSong(nowPlayingData.index);
+            libObject.libClass.updateSong(nowPlayingData.index, true);
         });
 
         setNowPlayingData({...nowPlayingData, rating:newRating})

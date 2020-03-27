@@ -46,6 +46,7 @@ public:
     Q_INVOKABLE void setRepeat(int n);
     Q_INVOKABLE bool setShuffle(bool to);
     Q_INVOKABLE bool getShuffle();
+    void updateSongData(int n, QVariant data);
 
 private:
     bool loadPlugins();

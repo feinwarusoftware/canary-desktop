@@ -1,14 +1,10 @@
 #include "library.h"
 #include "taglibextractor.h"
 
-#include <QDebug>
-
 CCover cover;
 TagLibExtractor extractor;
 
 QMimeDatabase db;
-
-QList<QString> supportedFormats = { "mp3", "ogg", "wav", "aiff", "flac", "wv", "opus", "m4a", "caf", "ape", "aac", "ac3", "tta" };
 
 const QStringList supportedMimeTypes = {
 	  QStringLiteral("audio/flac"),
@@ -43,11 +39,8 @@ bool Library::searchDir(QStringList dirPath) {
 		QDirIterator it(location, QDirIterator::Subdirectories);
 
 		while (it.hasNext()) {
-			//qDebug() << it.next();
-
 			QFileInfo fileInfo(it.next());
 			if (fileInfo.isFile() && supportedMimeTypes.indexOf(getMime(fileInfo.absoluteFilePath().toUtf8()).name()) != -1) { //if it's a file / if it's a supported file
-				qDebug() << fileInfo.absoluteFilePath();
 				jsonArr.append(fileInfo.absoluteFilePath());
 			}
 		}
@@ -57,7 +50,6 @@ bool Library::searchDir(QStringList dirPath) {
 		QDir().mkdir("userdata");
 	}
 
-	qDebug() << "writing file...";
 	QFile jsonFile("./userdata/fileList.json");
 	bool createJSON = jsonFile.open(QIODevice::ReadWrite);
 	QJsonDocument jsonDoc(jsonArr);
@@ -109,8 +101,6 @@ void Library::createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idN
 		if (fr.audioProperties() == NULL) {
 			continue; //audio properties (length, etc. are not readable, do not add song to the library
 		}
-
-		qDebug() << fileDirString;
 
 		song.insert("dir", fileDirString); //write the file directory into the library, even if it has no tagss
 		//checks for format-specific tags - will be replaced with the normal ones if repeated
@@ -248,7 +238,7 @@ void Library::updateLib(QStringList dirPath) {
 	fileListJson.close();
 }
 
-void Library::updateSong(int pos) {
+void Library::updateSong(int pos, bool isInQueue) {
 	//read file here - int pos apenas
 	QFile libraryJSONfile("./userdata/library.json");
 	libraryJSONfile.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -276,10 +266,13 @@ void Library::updateSong(int pos) {
 	QJsonDocument libJSON(libraryArray);
 	libraryJSONfile.write(libJSON.toJson());
 	libraryJSONfile.close();
+
+	if (isInQueue) {
+		emit songUpdated(pos, s);
+	}
 }
 
 void Library::setRating(int rating, int pos, QJsonValue data) {
-	qDebug() << rating;
 	QJsonObject s = data.toObject();
 
 	QString fileDirString = s.value("dir").toString();

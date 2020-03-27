@@ -50,12 +50,15 @@ public:
 	bool createLib();
 	Q_INVOKABLE QVariantList loadLib();
 	Q_INVOKABLE void updateLib(QStringList dirPath);
-	Q_INVOKABLE void updateSong(int pos);
+	Q_INVOKABLE void updateSong(int pos, bool isInQueue = false);
 	Q_INVOKABLE void setRating(int rating, int pos, QJsonValue data);
 
 private:
 	void createInfoList(QJsonArray fileList, QJsonArray& infoArray, int idNumber);
 	QMimeType getMime(QByteArray fn);
+
+signals:
+	void songUpdated(int pos, QJsonObject o);
 };
 
 #endif //LIBRARY_H

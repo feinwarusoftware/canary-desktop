@@ -8,6 +8,7 @@ function MusicList({libObject}) {
     const [data, setData] = useState(false);
 
     //maybe TODO: optimze, make so it doesn't reload everytime
+    /*eslint-disable */
     useEffect(()=>{
         if(!data){
             console.log("Dados em branco, carregando...");
@@ -52,6 +53,7 @@ function MusicList({libObject}) {
             });
         }
     }, [data]);
+    /*eslint-enable */
 
     return (
       <div className="music-list albumlist">

@@ -1,14 +1,11 @@
 import React from 'react';
 import { Disc, List, Settings } from 'react-feather';
 import {
-    BrowserRouter as Router,
-    Route,
-    Link,
-    Switch
+    Link
   } from "react-router-dom";
 import '../styles/Sidebar.css'
 
-function Sidebar(props){
+function Sidebar(){
     return(
         <div className="sidebar">
              <Link to="/usermusic"> <Disc size='40'/></Link>
